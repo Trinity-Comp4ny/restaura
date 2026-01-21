@@ -1,0 +1,38 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { mockProcedimentos } from '@/lib/mock-data-server'
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const search = searchParams.get('search')
+  const categoria = searchParams.get('categoria')
+  const limit = searchParams.get('limit')
+  const offset = searchParams.get('offset')
+
+  let filtered = [...mockProcedimentos]
+
+  if (search) {
+    const q = search.toLowerCase()
+    filtered = filtered.filter((p) => p.nome.toLowerCase().includes(q))
+  }
+  if (categoria) {
+    filtered = filtered.filter((p) => p.categoria === categoria)
+  }
+
+  const total = filtered.length
+
+  if (offset) {
+    const off = parseInt(offset, 10)
+    filtered = filtered.slice(off)
+  }
+
+  if (limit) {
+    const lim = parseInt(limit, 10)
+    filtered = filtered.slice(0, lim)
+  }
+
+  return NextResponse.json({
+    data: filtered,
+    total,
+    hasMore: limit && offset ? total > parseInt(offset, 10) + parseInt(limit, 10) : false,
+  })
+}
