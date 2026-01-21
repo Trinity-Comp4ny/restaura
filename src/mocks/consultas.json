@@ -1,0 +1,72 @@
+[
+  {
+    "id": "1",
+    "clinica_id": "clinic-1",
+    "paciente_id": "1",
+    "dentista_id": "dentist-1",
+    "procedimento_id": "proc-1",
+    "horario_inicio": "2024-01-15T09:00:00Z",
+    "horario_fim": "2024-01-15T09:30:00Z",
+    "status": "concluido",
+    "observacoes": "Paciente colaborador, procedimento realizado sem complicações.",
+    "criado_por_id": "user-1",
+    "criado_em": "2024-01-15T08:00:00Z",
+    "atualizado_em": "2024-01-15T09:30:00Z"
+  },
+  {
+    "id": "2",
+    "clinica_id": "clinic-1",
+    "paciente_id": "1",
+    "dentista_id": "dentist-2",
+    "procedimento_id": "proc-2",
+    "horario_inicio": "2023-12-20T14:00:00Z",
+    "horario_fim": "2023-12-20T15:00:00Z",
+    "status": "concluido",
+    "observacoes": "Avaliação ortodôntica inicial. Paciente encaminhado para especialista.",
+    "criado_por_id": "user-1",
+    "criado_em": "2023-12-20T13:00:00Z",
+    "atualizado_em": "2023-12-20T15:00:00Z"
+  },
+  {
+    "id": "3",
+    "clinica_id": "clinic-1",
+    "paciente_id": "1",
+    "dentista_id": "dentist-1",
+    "procedimento_id": "proc-3",
+    "horario_inicio": "2023-11-10T10:30:00Z",
+    "horario_fim": "2023-11-10T11:30:00Z",
+    "status": "concluido",
+    "observacoes": "Restauração composta em dente 16. Paciente orientado sobre cuidados.",
+    "criado_por_id": "user-1",
+    "criado_em": "2023-11-10T09:00:00Z",
+    "atualizado_em": "2023-11-10T11:30:00Z"
+  },
+  {
+    "id": "4",
+    "clinica_id": "clinic-1",
+    "paciente_id": "2",
+    "dentista_id": "dentist-2",
+    "procedimento_id": "proc-4",
+    "horario_inicio": "2024-01-18T10:00:00Z",
+    "horario_fim": "2024-01-18T11:00:00Z",
+    "status": "agendado",
+    "observacoes": "Primeira consulta do paciente.",
+    "criado_por_id": "user-1",
+    "criado_em": "2024-01-10T10:00:00Z",
+    "atualizado_em": "2024-01-10T10:00:00Z"
+  },
+  {
+    "id": "5",
+    "clinica_id": "clinic-1",
+    "paciente_id": "3",
+    "dentista_id": "dentist-1",
+    "procedimento_id": "proc-5",
+    "horario_inicio": "2024-01-19T14:00:00Z",
+    "horario_fim": "2024-01-19T15:30:00Z",
+    "status": "confirmado",
+    "observacoes": "Retorno para avaliação pós-tratamento.",
+    "criado_por_id": "user-1",
+    "criado_em": "2024-01-12T09:00:00Z",
+    "atualizado_em": "2024-01-15T10:00:00Z"
+  }
+]

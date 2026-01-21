@@ -1,0 +1,10 @@
+export { Header } from './header'
+export { HeroSection } from './hero-section'
+export { SocialProof } from './social-proof'
+export { BentoGrid } from './bento-grid'
+export { EmotionalSection } from './benefits-section'
+export { PricingSection } from './pricing-section'
+export { CTASection } from './cta-section'
+export { Footer } from './footer'
+export { FeatureCard } from './feature-card'
+

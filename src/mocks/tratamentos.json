@@ -1,0 +1,86 @@
+[
+  {
+    "id": "1",
+    "paciente_id": "1",
+    "nome": "Reabilitação Oral Superior",
+    "status": "em_andamento",
+    "criado_em": "2024-01-15",
+    "previsao_conclusao": "2024-06-15",
+    "valor_total": 3500.0,
+    "valor_pago": 1200.0,
+    "procedimentos": [
+      {
+        "id": "1",
+        "nome": "Exame e planejamento",
+        "status": "concluido",
+        "valor": 150.0,
+        "data": "2024-01-15",
+        "profissional": "Dr. Carlos Silva"
+      },
+      {
+        "id": "2",
+        "nome": "Tratamento periodontal",
+        "status": "concluido",
+        "valor": 800.0,
+        "data": "2024-02-20",
+        "profissional": "Dra. Maria Santos"
+      },
+      {
+        "id": "3",
+        "nome": "Clareamento dental",
+        "status": "pendente",
+        "valor": 450.0,
+        "data": null,
+        "profissional": null
+      },
+      {
+        "id": "4",
+        "nome": "Facetas em porcelana",
+        "status": "pendente",
+        "valor": 2100.0,
+        "data": null,
+        "profissional": null
+      }
+    ],
+    "observacoes": "Paciente interessado em melhoria estética. Plano dividido em 4 fases.",
+    "prioridade": "media"
+  },
+  {
+    "id": "2",
+    "paciente_id": "1",
+    "nome": "Manutenção Ortodôntica",
+    "status": "concluido",
+    "criado_em": "2023-06-10",
+    "previsao_conclusao": "2023-12-10",
+    "valor_total": 2800.0,
+    "valor_pago": 2800.0,
+    "procedimentos": [
+      {
+        "id": "1",
+        "nome": "Instalação do aparelho",
+        "status": "concluido",
+        "valor": 800.0,
+        "data": "2023-06-10",
+        "profissional": "Dra. Maria Santos"
+      },
+      {
+        "id": "2",
+        "nome": "Ajustes mensais",
+        "status": "concluido",
+        "valor": 1500.0,
+        "data": "2023-09-15",
+        "profissional": "Dra. Maria Santos"
+      },
+      {
+        "id": "3",
+        "nome": "Contenção",
+        "status": "concluido",
+        "valor": 500.0,
+        "data": "2023-12-10",
+        "profissional": "Dra. Maria Santos"
+      }
+    ],
+    "observacoes": "Tratamento concluído com sucesso. Paciente em fase de contenção.",
+    "prioridade": "baixa"
+  }
+]
