@@ -5,8 +5,6 @@ import {
   Footer,
   Header,
   HeroSection,
-  PricingSection,
-  SocialProof,
 } from '@/components/landing'
 
 export default function HomePage() {
@@ -16,10 +14,8 @@ export default function HomePage() {
 
       <main className="flex-1">
         <HeroSection />
-        <SocialProof />
         <BentoGrid />
         <EmotionalSection />
-        <PricingSection />
         <CTASection />
       </main>
 

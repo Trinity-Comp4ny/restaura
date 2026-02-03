@@ -1,58 +1,95 @@
+'use client'
+
 import Link from 'next/link'
+import { useState, type MouseEvent } from 'react'
+import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const NAV_LINKS = [
-  { label: 'Recursos', href: '#features' },
-  { label: 'Depoimentos', href: '#testimonials' },
-  { label: 'Preços', href: '#pricing' },
-  { label: 'Contato', href: '#contact' },
+  { label: 'Funcionalidades', href: '#features' },
+  { label: 'Sobre', href: '#sobre' },
 ]
 
 export function Header() {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
-        <div className="relative rounded-full border border-white/20 bg-white/70 backdrop-blur-xl shadow-premium px-4 py-3 sm:px-8">
-          <div className="flex items-center justify-between">
-            
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2 group">
-              <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-primary flex items-center justify-center text-white">
-                 {/* Simple Logo Placeholder until SVG loads */}
-                 <span className="font-bold text-lg">R</span>
-              </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900">Restaura</span>
-            </Link>
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
 
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-8">
+  function scrollToTop(e: MouseEvent) {
+    e.preventDefault()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  return (
+    <>
+      <div className="fixed top-0 inset-x-0 z-[100] bg-blue-500 text-white text-[10px] sm:text-xs py-2 border-b border-white/10 shadow-sm">
+        <div className="container-premium flex justify-end">
+          <span className="opacity-80 font-light tracking-wide">Impulsionado por </span>
+          <a
+            href="https://trnty.com.br"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold hover:text-blue-300 transition-colors ml-1"
+          >
+            Trinity Company
+          </a>
+        </div>
+      </div>
+
+      <header className="fixed top-[32px] inset-x-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-white/10 py-4 shadow-sm transition-all duration-300 text-white">
+        <div className="container-premium flex items-center justify-between">
+          <Link href="#" onClick={scrollToTop} className="flex items-center space-x-2 group">
+            <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-blue-500 flex items-center justify-center text-white transition-transform duration-500 group-hover:rotate-12 shadow-lg shadow-blue-500/20">
+              <img src="/logos/logo.svg" alt="Restaura" className="h-7 w-7" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white">Restaura</span>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-8">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-normal text-slate-200/80 transition-all duration-300 hover:text-blue-300 hover:-translate-y-0.5"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <Link href="/login">
+              <Button className="px-6 py-2.5 rounded-full shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0 duration-200 font-medium text-xs bg-blue-500 hover:bg-blue-600 border-none text-white">
+                Acessar Sistema
+              </Button>
+            </Link>
+          </nav>
+
+          <button
+            type="button"
+            className="md:hidden p-2 text-slate-200/80"
+            onClick={() => setIsMobileOpen((v) => !v)}
+            aria-label="Abrir menu"
+          >
+            {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
+        {isMobileOpen && (
+          <div className="md:hidden border-t border-white/10 bg-slate-900/90 backdrop-blur-xl">
+            <div className="container-premium py-6 flex flex-col gap-4 text-center">
               {NAV_LINKS.map((link) => (
-                <Link 
-                  key={link.href} 
+                <Link
+                  key={link.href}
                   href={link.href}
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                  className="text-lg font-medium text-slate-200/80"
+                  onClick={() => setIsMobileOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
-            </nav>
-
-            {/* Actions */}
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="hidden sm:block">
-                <Button variant="ghost" className="text-muted-foreground hover:text-primary">
-                  Entrar
-                </Button>
-              </Link>
-              <Link href="/cadastrar">
-                <Button className="rounded-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 px-6">
-                  Começar Grátis
-                </Button>
+              <Link href="/login" onClick={() => setIsMobileOpen(false)} className="text-lg font-medium text-blue-300">
+                Entrar
               </Link>
             </div>
           </div>
-        </div>
-      </div>
-    </header>
+        )}
+      </header>
+    </>
   )
 }
