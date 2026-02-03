@@ -250,6 +250,38 @@
   .space-x-premium {
     @apply space-x-4 lg:space-x-6;
   }
+
+  .reveal-up {
+    transform: translateY(2rem);
+    opacity: 0;
+    transition-property: transform, opacity;
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    transition-duration: 700ms;
+    will-change: transform, opacity;
+  }
+
+  .reveal-up.is-visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* Fallback: ensure elements are visible if JS fails or observer doesn't run */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-up {
+      animation: reveal-up-fade-in 0.7s ease-out forwards;
+    }
+  }
+
+  @keyframes reveal-up-fade-in {
+    from {
+      transform: translateY(2rem);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
 }
 
 @layer components {

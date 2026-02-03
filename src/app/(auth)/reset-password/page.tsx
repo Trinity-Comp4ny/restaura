@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -15,11 +15,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase/client'
 
-const registerSchema = z
+const schema = z
   .object({
-    name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-    email: z.string().email('E-mail inválido'),
-    clinicName: z.string().min(3, 'Nome da clínica deve ter no mínimo 3 caracteres'),
     password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
     confirmPassword: z.string(),
   })
@@ -28,46 +25,62 @@ const registerSchema = z
     path: ['confirmPassword'],
   })
 
-type RegisterFormData = z.infer<typeof registerSchema>
+type FormData = z.infer<typeof schema>
 
-export default function RegisterPage() {
+export default function ResetPasswordPage() {
   const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
   })
 
-  async function onSubmit(data: RegisterFormData) {
+  useEffect(() => {
+    if (!supabase) return
+
+    let cancelled = false
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (cancelled) return
+      if (error) return
+
+      if (!data.session) {
+        toast.error('Link inválido ou expirado. Solicite um novo link de recuperação.')
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function onSubmit(data: FormData) {
     setIsLoading(true)
     try {
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            name: data.name,
-            clinic_name: data.clinicName,
-          },
-        },
-      })
-
-      if (signUpError) {
-        toast.error(signUpError.message)
+      if (!supabase) {
+        toast.error('Supabase não configurado.')
         return
       }
 
-      if (authData.user) {
-        toast.success('Conta criada com sucesso! Verifique seu e-mail para confirmar.')
-        router.push('/login')
+      const { error } = await supabase.auth.updateUser({
+        password: data.password,
+      })
+
+      if (error) {
+        toast.error(error.message)
+        return
       }
+
+      toast.success('Senha atualizada com sucesso!')
+      router.push('/login')
+      router.refresh()
     } catch {
-      toast.error('Erro ao criar conta. Tente novamente.')
+      toast.error('Erro ao atualizar senha. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
@@ -77,60 +90,16 @@ export default function RegisterPage() {
     <Card className="glass-premium border-white/30 shadow-premium-xl">
       <CardHeader className="space-y-2">
         <div className="space-y-1">
-          <CardTitle className="text-2xl font-semibold tracking-tight">Criar conta</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Definir nova senha</CardTitle>
           <CardDescription>
-            Comece agora. Leva menos de 1 minuto.
+            Crie uma senha nova para entrar no seu painel.
           </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Seu nome</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="João Silva"
-              autoComplete="name"
-              disabled={isLoading}
-              error={!!errors.name}
-              {...register('name')}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="seu@email.com"
-              autoComplete="email"
-              disabled={isLoading}
-              error={!!errors.email}
-              {...register('email')}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="clinicName">Nome da clínica</Label>
-            <Input
-              id="clinicName"
-              type="text"
-              placeholder="Clínica Odontológica Sorriso"
-              disabled={isLoading}
-              error={!!errors.clinicName}
-              {...register('clinicName')}
-            />
-            {errors.clinicName && (
-              <p className="text-sm text-destructive">{errors.clinicName.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
+            <Label htmlFor="password">Nova senha</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -151,15 +120,14 @@ export default function RegisterPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar senha</Label>
+            <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
             <Input
               id="confirmPassword"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               autoComplete="new-password"
               disabled={isLoading}
@@ -170,17 +138,17 @@ export default function RegisterPage() {
               <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
             )}
           </div>
+
           <Button type="submit" className="w-full btn-premium" isLoading={isLoading}>
-            Criar conta
+            Salvar nova senha
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col gap-3">
         <div className="h-px w-full bg-border/60" />
         <p className="text-sm text-muted-foreground">
-          Já tem uma conta?{' '}
           <Link href="/login" className="font-medium text-primary hover:underline">
-            Entrar
+            Voltar para login
           </Link>
         </p>
       </CardFooter>

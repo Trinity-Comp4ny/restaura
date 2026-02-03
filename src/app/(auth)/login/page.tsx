@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -63,12 +63,16 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="border-0 shadow-lg mx-auto w-full max-w-md">
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold">Bem-vindo de volta</CardTitle>
-        <CardDescription>Entre com suas credenciais para acessar sua conta</CardDescription>
+    <Card className="glass-premium border-white/30 shadow-premium-xl">
+      <CardHeader className="space-y-2">
+        <div className="space-y-1">
+          <CardTitle className="text-2xl font-semibold tracking-tight">Acessar painel</CardTitle>
+          <CardDescription>
+            Entre com seu e-mail e senha para continuar.
+          </CardDescription>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-5">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
@@ -90,7 +94,7 @@ export default function LoginPage() {
               <Label htmlFor="password">Senha</Label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-primary hover:underline"
+                className="text-sm font-medium text-primary hover:underline"
               >
                 Esqueceu a senha?
               </Link>
@@ -108,7 +112,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                aria-pressed={showPassword}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -117,23 +123,17 @@ export default function LoginPage() {
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Entrando...
-              </>
-            ) : (
-              'Entrar'
-            )}
+          <Button type="submit" className="w-full btn-premium" isLoading={isLoading}>
+            Entrar
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-center">
+      <CardFooter className="flex flex-col gap-3">
+        <div className="h-px w-full bg-border/60" />
         <p className="text-sm text-muted-foreground">
           Não tem uma conta?{' '}
-          <Link href="/cadastrar" className="text-primary hover:underline">
-            Cadastre-se
+          <Link href="/cadastrar" className="font-medium text-primary hover:underline">
+            Criar conta
           </Link>
         </p>
       </CardFooter>
