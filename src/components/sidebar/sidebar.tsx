@@ -192,9 +192,17 @@ export function Sidebar() {
                     transition={{ duration: 0.6 }}
                     className="relative"
                   >
-                    <img src="/logos/logo.svg" alt="Restaura" className="h-7 w-7" />
+                    <span
+                      role="img"
+                      aria-label="Logomarca Restaura"
+                      className="block h-7 w-7 rounded-sm bg-sidebar-primary"
+                      style={{
+                        mask: 'url(/logos/logo.svg) center / contain no-repeat',
+                        WebkitMask: 'url(/logos/logo.svg) center / contain no-repeat',
+                      }}
+                    />
                   </motion.div>
-                  <span className="text-lg font-bold text-sidebar-foreground">Restaura</span>
+                  <span className="text-lg font-bold text-sidebar-primary">Restaura</span>
                 </Link>
               </motion.div>
             )}
@@ -250,7 +258,7 @@ export function Sidebar() {
                     className={cn(
                       'group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200',
                       isActive
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                        ? 'bg-sidebar-primary text-white shadow-sm'
                         : 'text-sidebar-foreground hover:bg-sidebar-accent',
                       isCollapsed && 'justify-center px-1'
                     )}
@@ -265,7 +273,7 @@ export function Sidebar() {
                         className={cn(
                           'h-4 w-4 transition-colors duration-200',
                           isActive 
-                            ? 'text-sidebar-primary-foreground' 
+                            ? 'text-white' 
                             : isHovered 
                               ? 'text-sidebar-primary' 
                               : 'text-sidebar-foreground'
@@ -285,7 +293,7 @@ export function Sidebar() {
                         >
                           <span className={cn(
                             'font-medium',
-                            isActive && 'text-sidebar-primary-foreground font-semibold'
+                            isActive && 'text-white font-semibold'
                           )}>
                             {item.title}
                           </span>
@@ -320,7 +328,7 @@ export function Sidebar() {
                        onClick={handleProfile}>
                     <Avatar className="h-7 w-7">
                       <AvatarImage src="/avatars/user.jpg" />
-                      <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs font-medium">
+                      <AvatarFallback className="bg-sidebar-primary text-white text-xs font-medium">
                         DR
                       </AvatarFallback>
                     </Avatar>
@@ -393,7 +401,7 @@ export function Sidebar() {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/avatars/user.jpg" />
-                  <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm font-medium">
+                  <AvatarFallback className="bg-sidebar-primary text-white text-sm font-medium">
                     DR
                   </AvatarFallback>
                 </Avatar>
