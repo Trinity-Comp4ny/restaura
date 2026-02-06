@@ -30,14 +30,13 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-2 group mb-6">
-              <div className="h-8 w-8 rounded-lg bg-blue-500 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">
+              <div className="h-8 w-8 overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:rotate-12">
                 <img src="/logos/logo.svg" alt="Restaura" className="h-6 w-6" />
               </div>
               <span className="text-xl font-bold tracking-tight">Restaura</span>
             </Link>
             <p className="text-slate-400 leading-relaxed mb-8 max-w-sm font-light">
-              Transformando a gestão de clínicas odontológicas com tecnologia, design e paixão. 
-              Simplifique seu dia a dia e foque no que importa.
+              Simplifique o controle financeiro, gestão de pacientes e operação da sua clínica em uma única plataforma.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-white/60 hover:text-white transition-all hover:scale-110 duration-300">
