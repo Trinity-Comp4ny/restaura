@@ -12,7 +12,7 @@ export function EmotionalSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8 reveal-up">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              <span className="text-white">Recupere a</span> <span className="text-blue-500">paixão</span> pela odontologia
+              <span className="text-white">Restaure a</span> <span className="text-blue-500">paixão</span> pela odontologia
             </h2>
             <p className="text-lg md:text-xl text-slate-300 leading-relaxed">
               Você não estudou anos para ser um administrador de planilhas. 
@@ -37,7 +37,7 @@ export function EmotionalSection() {
             </div>
 
             <Button className="btn-premium bg-blue-500 text-white hover:bg-blue-600 border-none shadow-lg shadow-blue-500/20 text-lg px-8 h-12 rounded-full mt-4">
-              Conheça nossa filosofia
+              Saiba mais
             </Button>
           </div>
 

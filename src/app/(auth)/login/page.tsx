@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -53,7 +53,7 @@ export default function LoginPage() {
       }
 
       toast.success('Login realizado com sucesso!')
-      router.push('/dashboard')
+      router.push('/home')
       router.refresh()
     } catch {
       toast.error('Erro ao fazer login. Tente novamente.')
@@ -63,80 +63,98 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="glass-premium border-white/30 shadow-premium-xl">
-      <CardHeader className="space-y-2">
-        <div className="space-y-1">
-          <CardTitle className="text-2xl font-semibold tracking-tight">Acessar painel</CardTitle>
-          <CardDescription>
-            Entre com seu e-mail e senha para continuar.
-          </CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="seu@email.com"
-              autoComplete="email"
-              disabled={isLoading}
-              error={!!errors.email}
-              {...register('email')}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
+    <div className="space-y-6">
+      {/* Botão voltar */}
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Voltar
+      </Link>
+
+      <Card className="rounded-2xl border border-white/10 bg-slate-800/40 backdrop-blur-xl shadow-2xl overflow-hidden">
+        <CardHeader className="space-y-2 border-b border-white/10 bg-slate-900/40">
+          <div className="space-y-1">
+            <CardTitle className="text-2xl font-semibold tracking-tight text-white">
+              Acessar painel
+            </CardTitle>
+            <CardDescription className="text-slate-300">
+              Entre com seu e-mail e senha para continuar.
+            </CardDescription>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Senha</Label>
-              <Link
-                href="/forgot-password"
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Esqueceu a senha?
-              </Link>
-            </div>
-            <div className="relative">
+        </CardHeader>
+        <CardContent className="space-y-5 pt-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-slate-200">E-mail</Label>
               <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                autoComplete="current-password"
+                id="email"
+                type="email"
+                placeholder="seu@email.com"
+                autoComplete="email"
                 disabled={isLoading}
-                error={!!errors.password}
-                {...register('password')}
+                error={!!errors.email}
+                className="bg-slate-900/50 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-blue-500"
+                {...register('email')}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                aria-pressed={showPassword}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
+              {errors.email && (
+                <p className="text-sm text-rose-400">{errors.email.message}</p>
+              )}
             </div>
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
-            )}
-          </div>
-          <Button type="submit" className="w-full btn-premium" isLoading={isLoading}>
-            Entrar
-          </Button>
-        </form>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-3">
-        <div className="h-px w-full bg-border/60" />
-        <p className="text-sm text-muted-foreground">
-          Não tem uma conta?{' '}
-          <Link href="/cadastrar" className="font-medium text-primary hover:underline">
-            Criar conta
-          </Link>
-        </p>
-      </CardFooter>
-    </Card>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-slate-200">Senha</Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Esqueceu a senha?
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  disabled={isLoading}
+                  error={!!errors.password}
+                  className="bg-slate-900/50 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-blue-500 pr-10"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  aria-pressed={showPassword}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-rose-400">{errors.password.message}</p>
+              )}
+            </div>
+            <Button
+              type="submit"
+              className="w-full h-12 rounded-full bg-blue-500 hover:bg-blue-600 border-none text-white shadow-lg shadow-blue-500/20 font-medium"
+              isLoading={isLoading}
+            >
+              Entrar
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-3 pt-6 border-t border-white/10">
+          <p className="text-sm text-slate-400">
+            Não tem uma conta?{' '}
+            <Link href="/cadastrar" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+              Criar conta
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }

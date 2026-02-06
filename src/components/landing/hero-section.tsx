@@ -26,8 +26,9 @@ export function HeroSection() {
 
         {/* Headline */}
         <h1 className="max-w-5xl text-4xl font-medium tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl mb-8 leading-[1.1]">
-          <span className="text-white">Restaure</span><br className="hidden sm:block" />
-          <span className="text-blue-500">a gestão de sua clínica.</span>
+          <span className="text-white">A gestão que </span>          
+          <span className="text-blue-500">restaura </span><br className="hidden sm:block" />
+          <span className="text-white">sua clínica.</span>
         </h1>
 
         {/* Subheadline */}
