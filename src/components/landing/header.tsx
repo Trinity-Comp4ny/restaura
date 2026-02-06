@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, type MouseEvent } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 
 const NAV_LINKS = [
   { label: 'Funcionalidades', href: '#features' },
@@ -37,8 +38,8 @@ export function Header() {
       <header className="fixed top-[32px] inset-x-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-white/10 py-4 shadow-sm transition-all duration-300 text-white">
         <div className="container-premium flex items-center justify-between">
           <Link href="#" onClick={scrollToTop} className="flex items-center space-x-2 group">
-            <div className="relative h-9 w-9 overflow-hidden rounded-xl bg-blue-500 flex items-center justify-center text-white transition-transform duration-500 group-hover:rotate-12 shadow-lg shadow-blue-500/20">
-              <img src="/logos/logo.svg" alt="Restaura" className="h-7 w-7" />
+            <div className="relative h-9 w-9 overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:rotate-12">
+              <Image src="/logos/logo.svg" alt="Restaura" className="h-7 w-7" width={28} height={28} />
             </div>
             <span className="text-xl font-bold tracking-tight text-white">Restaura</span>
           </Link>

@@ -130,6 +130,21 @@ export function useMockEstoque(options?: {
   })
 }
 
+// Hook para equipe (usuários da clínica)
+export function useMockEquipe(options?: { search?: string }) {
+  const query = useMemo(() => {
+    const params = new URLSearchParams()
+    if (options?.search) params.set('search', options.search)
+    return params.toString()
+  }, [options?.search])
+
+  return useQuery({
+    queryKey: ['mock-equipe', query],
+    queryFn: () => fetchMock<{ data: unknown[]; total: number }>(`/usuarios?${query}`),
+    staleTime: 1000 * 30,
+  })
+}
+
 // Hook para selects (pacientes, dentistas, procedimentos, setores)
 export function useMockSelects(type: 'pacientes' | 'dentistas' | 'procedimentos' | 'setores') {
   return useQuery({
