@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import {
-  Plus, Search, Download, Eye, CheckCircle, Clock, AlertCircle,
-  MoreHorizontal, ArrowUpRight, Filter, X, DollarSign
+  Search, Filter, Plus, Download, Calendar, Clock, CheckCircle,
+  AlertCircle, TrendingUp, TrendingDown, DollarSign, CreditCard,
+  Building2, Users, FileText, ArrowUpRight, ArrowDownRight, Eye, X
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,10 +14,13 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { formatarValor, calcularDataVencimentoFatura, verificarAprovacaoCompra } from '@/lib/financeiro-utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { Switch } from '@/components/ui/switch'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { MoreHorizontal } from 'lucide-react'
 
 interface ReceitasTabProps {
   periodo: string
@@ -63,6 +67,43 @@ const dentistas = ['Todos', 'Dr. Ricardo Almeida', 'Dra. Camila Santos', 'Dr. Fe
 const centrosReceita = ['Clínica Geral', 'Ortodontia', 'Implantodontia', 'Estética', 'Convênios', 'Outros']
 const origensReceita = ['Particular', 'Convênio', 'Reembolso', 'Parceria', 'Outros']
 
+// Mock de contas e métodos configurados
+const mockContasBancarias = [
+  { id: '1', nome: 'Banco Inter PJ - Conta Principal', tipo: 'conta_corrente', isPadrao: true },
+  { id: '2', nome: 'Banco do Brasil - Conta Secundária', tipo: 'conta_corrente', isPadrao: false },
+  { id: '3', nome: 'Caixa Físico', tipo: 'caixa_fisico', isPadrao: false }
+]
+
+const mockMetodosPagamento = [
+  { id: '1', nome: 'PIX - Banco Inter', tipo: 'pix', contaVinculada: '1', taxas: 0, prazoDeposito: 0, isPadrao: true },
+  { id: '2', nome: 'Cartão de Crédito - Stripe', tipo: 'cartao_credito', contaVinculada: '1', taxas: 2.99, prazoDeposito: 30, isPadrao: false },
+  { id: '3', nome: 'Cartão de Crédito - Rede', tipo: 'cartao_credito', contaVinculada: '2', taxas: 3.49, prazoDeposito: 25, isPadrao: false },
+  { id: '4', nome: 'Dinheiro', tipo: 'dinheiro', contaVinculada: '3', taxas: 0, prazoDeposito: 0, isPadrao: false }
+]
+const clinicas = [
+  { id: '1', nome: 'Clínica Central - BH' },
+  { id: '2', nome: 'Clínica Norte - BH' },
+  { id: '3', nome: 'Clínica Sul - BH' },
+  { id: '4', nome: 'Clínica Oeste - BH' }
+]
+
+const mockReceitaPorOrigem = [
+  { origem: 'Particular', valor: 31200, percentual: 45 },
+  { origem: 'Convênios', valor: 18900, percentual: 27 },
+  { origem: 'Reembolsos', valor: 8200, percentual: 12 },
+  { origem: 'Parcerias', valor: 6200, percentual: 9 },
+  { origem: 'Outros', valor: 3950, percentual: 7 },
+]
+
+const mockReceitaPorTempo = [
+  { label: 'Seg', valor: 5800 },
+  { label: 'Ter', valor: 6400 },
+  { label: 'Qua', valor: 7200 },
+  { label: 'Qui', valor: 5900 },
+  { label: 'Sex', valor: 8100 },
+  { label: 'Sáb', valor: 3100 },
+]
+
 export function ReceitasTab({ periodo }: ReceitasTabProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('todos')
@@ -75,6 +116,30 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
   const [novaReceitaParcelada, setNovaReceitaParcelada] = useState(false)
   const [novaReceitaRecorrente, setNovaReceitaRecorrente] = useState(false)
   const [novaReceitaStatus, setNovaReceitaStatus] = useState<'pendente' | 'pago' | 'cancelado' | 'estornado'>('pendente')
+  const [clinicaSelecionada, setClinicaSelecionada] = useState('')
+  const [mostrarInsights, setMostrarInsights] = useState(true)
+
+  // Estados para fluxo corrigido
+  const [metodoPagamentoSelecionado, setMetodoPagamentoSelecionado] = useState('')
+  const [contaDestinoSelecionada, setContaDestinoSelecionada] = useState('')
+  const [valorBruto, setValorBruto] = useState(0)
+  const [valorLiquido, setValorLiquido] = useState(0)
+  
+  // Estados para validação
+  const [validacaoLimite, setValidacaoLimite] = useState<{aprovada: boolean, motivo?: string} | null>(null)
+  const [dataCreditoCalculada, setDataCreditoCalculada] = useState('')
+  
+  // Estados para campos essenciais faltantes
+  const [dataPagamento, setDataPagamento] = useState('')
+  const [origemReceita, setOrigemReceita] = useState('')
+  const [planoId, setPlanoId] = useState('')
+  const [autorizacaoId, setAutorizacaoId] = useState('')
+  
+  // Estados para parcelas
+  const [parcelarReceita, setParcelarReceita] = useState(false)
+  const [numeroParcelas, setNumeroParcelas] = useState(1)
+  const [valorParcela, setValorParcela] = useState(0)
+  const [dataPrimeiraParcela, setDataPrimeiraParcela] = useState('')
 
   const handleNewReceitaOpenChange = (open: boolean) => {
     setShowNewDialog(open)
@@ -82,6 +147,124 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
       setNovaReceitaParcelada(false)
       setNovaReceitaRecorrente(false)
       setNovaReceitaStatus('pendente')
+      // Resetar estados do fluxo corrigido
+      setMetodoPagamentoSelecionado('')
+      setContaDestinoSelecionada('')
+      setValorBruto(0)
+      setValorLiquido(0)
+      // Resetar campos essenciais
+      setDataPagamento('')
+      setOrigemReceita('')
+      setPlanoId('')
+      setAutorizacaoId('')
+      // Resetar parcelas
+      setParcelarReceita(false)
+      setNumeroParcelas(1)
+      setValorParcela(0)
+      setDataPrimeiraParcela('')
+    }
+  }
+
+  // Calcular valor líquido quando método ou valor bruto mudar
+  const calcularValorLiquido = (metodoId: string, valor: number) => {
+    const metodo = mockMetodosPagamento.find(m => m.id === metodoId)
+    if (!metodo) {
+      setValorLiquido(valor)
+      return
+    }
+
+    const taxaTotal = (valor * metodo.taxas / 100)
+    const liquido = valor - taxaTotal
+    setValorLiquido(liquido)
+
+    // Auto-selecionar conta vinculada
+    if (metodo.contaVinculada && !contaDestinoSelecionada) {
+      setContaDestinoSelecionada(metodo.contaVinculada)
+    }
+  }
+
+  // Handler para mudança de método de pagamento
+  const handleMetodoChange = (metodoId: string) => {
+    setMetodoPagamentoSelecionado(metodoId)
+    calcularValorLiquido(metodoId, valorBruto)
+    calcularDataCredito()
+    
+    // Validar limite se for cartão
+    const metodo = mockMetodosPagamento.find(m => m.id === metodoId)
+    if (metodo?.tipo === 'cartao_credito' && valorBruto > 0) {
+      validarLimiteCartao(valorBruto)
+    } else {
+      setValidacaoLimite(null)
+    }
+  }
+
+  // Handler para mudança de valor
+  const handleValorChange = (valor: number) => {
+    setValorBruto(valor)
+    calcularValorLiquido(metodoPagamentoSelecionado, valor)
+    
+    // Validar limite se for cartão
+    if (metodoPagamentoSelecionado && mockMetodosPagamento.find(m => m.id === metodoPagamentoSelecionado)?.tipo === 'cartao_credito') {
+      validarLimiteCartao(valor)
+    }
+    
+    // Recalcular valor da parcela se parcelamento ativo
+    if (parcelarReceita && numeroParcelas > 1) {
+      setValorParcela(valorLiquido / numeroParcelas)
+    }
+  }
+  
+  // Validar limite de cartão
+  const validarLimiteCartao = (valor: number) => {
+    const metodo = mockMetodosPagamento.find(m => m.id === metodoPagamentoSelecionado)
+    if (!metodo || metodo.tipo !== 'cartao_credito') return
+    
+    // Simular validação (em produção viria do backend)
+    const validacao = {
+      aprovada: valor <= 5000, // Simulação de limite
+      motivo: valor > 5000 ? 'Limite do cartão insuficiente' : undefined
+    }
+    
+    setValidacaoLimite(validacao)
+  }
+  
+  // Calcular data de crédito baseada no método
+  const calcularDataCredito = () => {
+    const metodo = mockMetodosPagamento.find(m => m.id === metodoPagamentoSelecionado)
+    if (!metodo) return
+    
+    const hoje = new Date()
+    const dataCredito = new Date(hoje)
+    dataCredito.setDate(dataCredito.getDate() + metodo.prazoDeposito)
+    
+    setDataCreditoCalculada(dataCredito.toISOString().split('T')[0])
+  }
+  
+  // Handler para parcelamento
+  const handleParcelamentoChange = (parcelar: boolean) => {
+    setParcelarReceita(parcelar)
+    if (!parcelar) {
+      setNumeroParcelas(1)
+      setValorParcela(0)
+      setDataPrimeiraParcela('')
+    } else {
+      // Auto-configurar primeira parcela para daqui a 30 dias
+      const dataPrimeira = new Date()
+      dataPrimeira.setDate(dataPrimeira.getDate() + 30)
+      setDataPrimeiraParcela(dataPrimeira.toISOString().split('T')[0])
+      
+      // Calcular valor da parcela
+      if (numeroParcelas > 1) {
+        setValorParcela(valorLiquido / numeroParcelas)
+      }
+    }
+  }
+  
+  // Handler para mudança de número de parcelas
+  const handleNumeroParcelasChange = (num: number) => {
+    setNumeroParcelas(num)
+    if (num > 1 && valorLiquido > 0) {
+      setValorParcela(valorLiquido / num)
     }
   }
 
@@ -99,6 +282,8 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
   const totalPago = filtered.filter(r => r.status === 'pago').reduce((s, r) => s + r.valor, 0)
   const totalPendente = filtered.filter(r => r.status === 'pendente').reduce((s, r) => s + r.valor, 0)
   const totalGeral = filtered.reduce((s, r) => s + r.valor, 0)
+  const ticketMedioCalculado = filtered.length > 0 ? totalGeral / filtered.length : 0
+  const parcelasFaturadas = filtered.filter((r) => Boolean(r.parcela)).length
 
   const hasActiveFilters = categoriaFilter !== 'Todas' || metodoFilter !== 'Todos' || dentistaFilter !== 'Todos'
 
@@ -159,6 +344,76 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
           </CardContent>
         </Card>
       </div>
+
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Insights de Receitas</h3>
+        <Button variant="ghost" size="sm" onClick={() => setMostrarInsights((prev) => !prev)}>
+          {mostrarInsights ? 'Ocultar' : 'Mostrar'} análises
+        </Button>
+      </div>
+
+      {mostrarInsights && (
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Origem da Receita</CardTitle>
+                <CardDescription>Particular vs convênios</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {mockReceitaPorOrigem.map((origem) => (
+                  <div key={origem.origem} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-sm">
+                      <span>{origem.origem}</span>
+                      <span className="font-medium">{formatCurrency(origem.valor)}</span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-muted">
+                      <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${origem.percentual}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Tendência semanal</CardTitle>
+                <CardDescription>Volume faturado por dia</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {mockReceitaPorTempo.map((item) => (
+                  <div key={item.label} className="flex items-center gap-3">
+                    <span className="w-10 text-xs text-muted-foreground">{item.label}</span>
+                    <div className="flex-1 h-2 rounded-full bg-muted">
+                      <div className="h-2 rounded-full bg-green-500 transition-all" style={{ width: `${(item.valor / 8200) * 100}%` }} />
+                    </div>
+                    <span className="text-xs font-medium">{formatCurrency(item.valor)}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Destaques do período</CardTitle>
+                <CardDescription>KPIs complementares</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>Ticket médio</span>
+                  <strong>{formatCurrency(ticketMedioCalculado)}</strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Parcelas faturadas</span>
+                  <strong>{parcelasFaturadas}</strong>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Conversão orçamento → tratamento</span>
+                  <strong>78%</strong>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* Filtros */}
       <Card>
@@ -339,13 +594,30 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
                 <div><Label>Descrição</Label><Input placeholder="Ex: Implante Unitário" /></div>
                 <div><Label>Procedimento / Serviço</Label><Input placeholder="Ex: Implante com carga imediata" /></div>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label>Clinica</Label>
+                  <Select value={clinicaSelecionada} onValueChange={setClinicaSelecionada}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a clínica" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clinicas.map((clinica) => (
+                        <SelectItem key={clinica.id} value={clinica.id}>
+                          {clinica.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <Label>Categoria</Label>
                   <Select><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>{categorias.filter(c => c !== 'Todas').map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <Label>Origem</Label>
                   <Select><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -358,6 +630,7 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
                     <SelectContent>{centrosReceita.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+                <div></div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div><Label>Paciente</Label><Input placeholder="Nome do paciente" /></div>
@@ -373,7 +646,40 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
             <section className="space-y-3">
               <h4 className="text-sm font-semibold">Detalhes financeiros</h4>
               <div className="grid gap-4 md:grid-cols-3">
-                <div><Label>Valor (R$)</Label><Input type="number" placeholder="0,00" step="0.01" /></div>
+                <div>
+                  <Label>Valor Bruto (R$)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0,00" 
+                    step="0.01" 
+                    value={valorBruto}
+                    onChange={(e) => handleValorChange(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div>
+                  <Label>Valor Líquido (R$)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0,00" 
+                    step="0.01" 
+                    value={valorLiquido}
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Taxas (R$)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="0,00" 
+                    step="0.01" 
+                    value={(valorBruto - valorLiquido).toFixed(2)}
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
                 <div>
                   <Label>Status</Label>
                   <Select value={novaReceitaStatus} onValueChange={(value) => setNovaReceitaStatus(value as typeof novaReceitaStatus)}>
@@ -388,18 +694,131 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
                 </div>
                 <div>
                   <Label>Método de Pagamento</Label>
-                  <Select><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>{metodos.filter(m => m !== 'Todos').map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                  <Select value={metodoPagamentoSelecionado} onValueChange={handleMetodoChange}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o método" /></SelectTrigger>
+                    <SelectContent>
+                      {mockMetodosPagamento.map(m => (
+                        <SelectItem key={m.id} value={m.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{m.nome}</span>
+                            {m.taxas > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {m.taxas}% + R${m.taxas > 0 ? '0.50' : '0'}
+                              </Badge>
+                            )}
+                            {m.prazoDeposito > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {m.prazoDeposito}d
+                              </Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Conta de Destino</Label>
+                  <Select value={contaDestinoSelecionada} onValueChange={setContaDestinoSelecionada}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a conta" /></SelectTrigger>
+                    <SelectContent>
+                      {mockContasBancarias.map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{c.nome}</span>
+                            {c.isPadrao && (
+                              <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs">
+                                Padrão
+                              </Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div><Label>Competência</Label><Input type="month" /></div>
-                <div><Label>Data de Emissão</Label><Input type="date" /></div>
-                <div><Label>Data de Vencimento</Label><Input type="date" /></div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label>Data de Emissão</Label>
+                  <Input type="date" />
+                </div>
+                <div>
+                  <Label>Data de Vencimento</Label>
+                  <Input type="date" />
+                </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <div><Label>Conta Bancária / Conta Caixa</Label><Input placeholder="Ex: Banco Inter - Conta 123" /></div>
+                <div>
+                  <Label>Data de Crédito Prevista</Label>
+                  <Input 
+                    type="date" 
+                    value={dataCreditoCalculada}
+                    readOnly
+                    className="bg-muted"
+                    title={metodoPagamentoSelecionado ? 
+                      `Data calculada: ${mockMetodosPagamento.find(m => m.id === metodoPagamentoSelecionado)?.prazoDeposito || 0} dias após pagamento` : 
+                      'Selecione um método para calcular'}
+                  />
+                  {metodoPagamentoSelecionado && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Prazo: {mockMetodosPagamento.find(m => m.id === metodoPagamentoSelecionado)?.prazoDeposito || 0} dias
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>Data de Pagamento</Label>
+                  <Input 
+                    type="date" 
+                    value={dataPagamento}
+                    onChange={(e) => setDataPagamento(e.target.value)}
+                    disabled={novaReceitaStatus !== 'pago'}
+                    placeholder={novaReceitaStatus === 'pago' ? 'Informe a data' : 'Disponível quando pago'}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label>Origem da Receita</Label>
+                  <Select value={origemReceita} onValueChange={setOrigemReceita}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {origensReceita.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Centro de Receita</Label>
+                  <Select><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>{centrosReceita.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Campos específicos para convênio */}
+              {origemReceita === 'Convênio' && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label>Plano do Convênio</Label>
+                    <Input 
+                      placeholder="Ex: Plano Básico" 
+                      value={planoId}
+                      onChange={(e) => setPlanoId(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Nº da Autorização</Label>
+                    <Input 
+                      placeholder="Ex: AUTH-12345" 
+                      value={autorizacaoId}
+                      onChange={(e) => setAutorizacaoId(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <div><Label>Competência</Label><Input type="month" /></div>
                 <div><Label>Nº do Documento / NF</Label><Input placeholder="Ex: NF 2549" /></div>
               </div>
             </section>
@@ -423,10 +842,68 @@ export function ReceitasTab({ periodo }: ReceitasTabProps) {
                 </div>
               </div>
               {novaReceitaParcelada && (
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div><Label>Qtd. Parcelas</Label><Input type="number" min={1} placeholder="Ex: 6" /></div>
-                  <div><Label>Intervalo (dias)</Label><Input type="number" min={0} placeholder="30" /></div>
-                  <div><Label>1ª Parcela</Label><Input type="date" /></div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <Label className="text-sm">Receita parcelada?</Label>
+                      <p className="text-xs text-muted-foreground">Ex.: tratamento parcelado</p>
+                    </div>
+                    <Switch checked={parcelarReceita} onCheckedChange={handleParcelamentoChange} />
+                  </div>
+                  
+                  {parcelarReceita && (
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div>
+                        <Label>Nº de Parcelas</Label>
+                        <Select value={numeroParcelas.toString()} onValueChange={(v) => handleNumeroParcelasChange(parseInt(v))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[2, 3, 4, 5, 6, 8, 10, 12].map(n => (
+                              <SelectItem key={n} value={n.toString()}>
+                                {n}x de {formatarValor(valorLiquido / n)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Valor da Parcela</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="0,00" 
+                          step="0.01" 
+                          value={valorParcela}
+                          readOnly
+                          className="bg-muted"
+                        />
+                      </div>
+                      <div>
+                        <Label>1ª Parcela</Label>
+                        <Input 
+                          type="date" 
+                          value={dataPrimeiraParcela}
+                          onChange={(e) => setDataPrimeiraParcela(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {parcelarReceita && numeroParcelas > 1 && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="text-sm text-blue-800">
+                        <div className="font-medium mb-1">Resumo do Parcelamento:</div>
+                        <div className="grid gap-1 text-xs">
+                          <div>• Total: {formatarValor(valorLiquido)}</div>
+                          <div>• {numeroParcelas}x de {formatarValor(valorParcela)}</div>
+                          <div>• Início: {dataPrimeiraParcela ? new Date(dataPrimeiraParcela).toLocaleDateString('pt-BR') : '-'}</div>
+                          <div>• Término: {dataPrimeiraParcela ? 
+                            new Date(new Date(dataPrimeiraParcela).setMonth(new Date(dataPrimeiraParcela).getMonth() + numeroParcelas - 1)).toLocaleDateString('pt-BR') : '-'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               {novaReceitaRecorrente && (
