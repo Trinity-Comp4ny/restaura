@@ -69,6 +69,7 @@ const menuItems = [
     title: 'Agenda',
     href: '/agenda',
     icon: Calendar,
+    disabled: true,
   },
   {
     title: 'Financeiro',
@@ -79,11 +80,13 @@ const menuItems = [
     title: 'Estoque',
     href: '/estoque',
     icon: Package,
+    disabled: true,
   },
   {
     title: 'Leads',
     href: '/leads',
     icon: TrendingUp,
+    disabled: true,
   },
 ]
 
@@ -242,6 +245,7 @@ export function Sidebar() {
               const isActive = pathname === item.href || 
     (item.href === '/agenda' && pathname.startsWith('/pacientes/') && document.referrer.includes('/agenda'))
               const isHovered = hoveredItem === item.href
+              const isDisabled = item.disabled
               
               return (
                 <motion.div
@@ -251,56 +255,94 @@ export function Sidebar() {
                   animate="visible"
                   variants={itemVariants}
                 >
-                  <Link
-                    href={item.href as any}
-                    onMouseEnter={() => setHoveredItem(item.href)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                    className={cn(
-                      'group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200',
-                      isActive
-                        ? 'bg-sidebar-primary text-white shadow-sm'
-                        : 'text-sidebar-foreground hover:bg-sidebar-accent',
-                      isCollapsed && 'justify-center px-1'
-                    )}
-                  >
-                    {/* Icon */}
-                    <motion.div
-                      className="relative flex h-5 w-5 items-center justify-center shrink-0"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <item.icon 
-                        className={cn(
-                          'h-4 w-4 transition-colors duration-200',
-                          isActive 
-                            ? 'text-white' 
-                            : isHovered 
-                              ? 'text-sidebar-primary' 
-                              : 'text-sidebar-foreground'
-                        )} 
-                      />
-                    </motion.div>
-
-                    {/* Content */}
-                    <AnimatePresence mode="wait">
-                      {!isCollapsed && (
-                        <motion.div
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -10 }}
-                          transition={{ duration: 0.2 }}
-                          className="flex-1"
-                        >
-                          <span className={cn(
-                            'font-medium',
-                            isActive && 'text-white font-semibold'
-                          )}>
-                            {item.title}
-                          </span>
-                        </motion.div>
+                  {isDisabled ? (
+                    <div
+                      onMouseEnter={() => !isDisabled && setHoveredItem(item.href)}
+                      onMouseLeave={() => setHoveredItem(null)}
+                      className={cn(
+                        'group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200',
+                        'opacity-50 cursor-not-allowed text-sidebar-foreground/50',
+                        isCollapsed && 'justify-center px-1'
                       )}
-                    </AnimatePresence>
-                  </Link>
+                    >
+                      {/* Icon */}
+                      <motion.div
+                        className="relative flex h-5 w-5 items-center justify-center shrink-0"
+                      >
+                        <item.icon 
+                          className="h-4 w-4 transition-colors duration-200 text-sidebar-foreground/40"
+                        />
+                      </motion.div>
+
+                      {/* Content */}
+                      <AnimatePresence mode="wait">
+                        {!isCollapsed && (
+                          <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex-1"
+                          >
+                            <span className="font-medium text-sidebar-foreground/50">
+                              {item.title}
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.href as any}
+                      onMouseEnter={() => setHoveredItem(item.href)}
+                      onMouseLeave={() => setHoveredItem(null)}
+                      className={cn(
+                        'group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200',
+                        isActive
+                          ? 'bg-sidebar-primary text-white shadow-sm'
+                          : 'text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer',
+                        isCollapsed && 'justify-center px-1'
+                      )}
+                    >
+                      {/* Icon */}
+                      <motion.div
+                        className="relative flex h-5 w-5 items-center justify-center shrink-0"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <item.icon 
+                          className={cn(
+                            'h-4 w-4 transition-colors duration-200',
+                            isActive 
+                              ? 'text-white' 
+                              : isHovered 
+                                ? 'text-sidebar-primary' 
+                                : 'text-sidebar-foreground'
+                          )} 
+                        />
+                      </motion.div>
+
+                      {/* Content */}
+                      <AnimatePresence mode="wait">
+                        {!isCollapsed && (
+                          <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex-1"
+                          >
+                            <span className={cn(
+                              'font-medium',
+                              isActive && 'text-white font-semibold'
+                            )}>
+                              {item.title}
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Link>
+                  )}
                 </motion.div>
               )
             })}

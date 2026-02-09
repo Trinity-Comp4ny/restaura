@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { User, Building, Users as UsersIcon, Calendar, CreditCard, Bell, Shield, Database } from 'lucide-react'
+import { User, Building, Users as UsersIcon, Calendar, CreditCard, Bell, Shield, Database, DollarSign } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -45,11 +45,11 @@ export default function ConfiguracoesPage() {
       color: 'bg-orange-100 text-orange-800',
     },
     {
-      title: 'Formas de Pagamento',
-      description: 'Configure métodos de pagamento aceitos',
-      href: '/configuracoes/pagamentos',
-      icon: CreditCard,
-      color: 'bg-pink-100 text-pink-800',
+      title: 'Financeiro',
+      description: 'Configure categorias, métodos de pagamento e contas',
+      href: '/configuracoes/financeiro',
+      icon: DollarSign,
+      color: 'bg-emerald-100 text-emerald-800',
     },
     {
       title: 'Notificações',
