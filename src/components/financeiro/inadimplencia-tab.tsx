@@ -88,6 +88,7 @@ const faixaConfig: Record<string, { label: string; color: string; bgColor: strin
 export function InadimplenciaTab({ periodo }: InadimplenciaTabProps) {
   const [expandedPaciente, setExpandedPaciente] = useState<string | null>(null)
   const [faixaFilter, setFaixaFilter] = useState('todas')
+  const [mostrarInsights, setMostrarInsights] = useState(true)
 
   const filtered = faixaFilter === 'todas'
     ? mockInadimplentes
@@ -96,6 +97,9 @@ export function InadimplenciaTab({ periodo }: InadimplenciaTabProps) {
   const totalInadimplencia = mockInadimplentes.reduce((s, p) => s + p.totalDevido, 0)
   const totalPacientes = mockInadimplentes.length
   const totalParcelas = mockInadimplentes.reduce((s, p) => s + p.parcelasVencidas, 0)
+  const pacientesCriticos = mockInadimplentes.filter((p) => p.faixa === '90+').length
+  const pacientesReativados = 2 // mock: poderia vir do backend
+  const contatosPendentes = mockInadimplentes.filter((p) => p.diasAtraso >= 30).length
 
   const aging = {
     '1-30': mockInadimplentes.filter(p => p.faixa === '1-30').reduce((s, p) => s + p.totalDevido, 0),
@@ -129,7 +133,7 @@ export function InadimplenciaTab({ periodo }: InadimplenciaTabProps) {
         </Card>
       )}
 
-      {/* KPIs */}
+      {/* KPI */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="p-4">
@@ -156,6 +160,77 @@ export function InadimplenciaTab({ periodo }: InadimplenciaTabProps) {
           </CardContent>
         </Card>
       </div>
+
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Insights operacionais</h3>
+        <Button variant="ghost" size="sm" onClick={() => setMostrarInsights((prev) => !prev)}>
+          {mostrarInsights ? 'Ocultar' : 'Mostrar'} análises
+        </Button>
+      </div>
+
+      {mostrarInsights && (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Fila de cobrança</CardTitle>
+              <CardDescription>Contatos prioritários</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span>Contatos pendentes</span>
+                <Badge variant="outline" className="text-orange-600 border-orange-200">{contatosPendentes}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Pacientes 90+ dias</span>
+                <Badge variant="outline" className="text-red-600 border-red-200">{pacientesCriticos}</Badge>
+              </div>
+              <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
+                {pacientesCriticos > 0 ? 'Priorize acordos para evitar perda total.' : 'Nenhum paciente acima de 90 dias.'}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Performances recentes</CardTitle>
+              <CardDescription>Últimos 30 dias</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span>Valores recuperados</span>
+                <span className="font-semibold text-green-600">{formatCurrency(6200)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Pacientes reativados</span>
+                <Badge variant="outline" className="text-green-600 border-green-200">{pacientesReativados}</Badge>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Média de recuperação: {formatCurrency(6200 / Math.max(pacientesReativados, 1))}/paciente
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Próximas ações</CardTitle>
+              <CardDescription>Sugestões automatizadas</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span>Enviar lote WhatsApp</span>
+                <Badge variant="outline" className="text-primary border-primary/30">Hoje</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Negociações agendadas</span>
+                <span className="font-medium">4 pacientes</span>
+              </div>
+              <Button variant="outline" size="sm" className="w-full">
+                Configurar lembretes automáticos
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Aging List Visual */}
       <Card>

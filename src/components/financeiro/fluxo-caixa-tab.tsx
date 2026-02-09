@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate, formatCurrency } from '@/lib/utils'
@@ -14,6 +15,19 @@ import { formatDate, formatCurrency } from '@/lib/utils'
 interface FluxoCaixaTabProps {
   periodo: string
 }
+
+const mockFluxoResumo = {
+  saldoAtual: 28460,
+  projecaoSemana: -2400,
+  variacaoSaldo: -8.2,
+  contasReceberSemana: 18200,
+  contasPagarSemana: 15800,
+}
+
+const mockFluxoAlertas: { titulo: string; descricao: string; risco: 'alto' | 'medio' | 'baixo' }[] = [
+  { titulo: 'Semana 1 Fev', descricao: 'Saldo previsto -R$ 2.400', risco: 'alto' },
+  { titulo: 'Contas a pagar', descricao: 'R$ 15.800 vencem em 7 dias', risco: 'medio' },
+]
 
 const mockFluxoDiario = [
   { data: '2024-01-15', entradas: 4850.00, saidas: 890.00, saldo: 3960.00, saldoAcumulado: 28460.00 },
@@ -110,6 +124,7 @@ const visaoConfigs = {
 
 export function FluxoCaixaTab({ periodo }: FluxoCaixaTabProps) {
   const [visao, setVisao] = useState<keyof typeof visaoConfigs>('diario')
+  const [mostrarInsights, setMostrarInsights] = useState(true)
 
   const saldoAtual = mockFluxoDiario[0].saldoAcumulado
   const totalEntradas = mockFluxoDiario.reduce((s, d) => s + d.entradas, 0)
@@ -172,6 +187,56 @@ export function FluxoCaixaTab({ periodo }: FluxoCaixaTabProps) {
           </CardContent>
         </Card>
       </div>
+
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Insights rápidos</h3>
+        <Button variant="ghost" size="sm" onClick={() => setMostrarInsights((prev) => !prev)}>
+          {mostrarInsights ? 'Ocultar' : 'Mostrar'} análises
+        </Button>
+      </div>
+
+      {mostrarInsights && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Resultado projetado</CardTitle>
+              <CardDescription>Próximas 2 semanas</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span>Entradas previstas</span>
+                <strong>{formatCurrency(mockFluxoResumo.contasReceberSemana)}</strong>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Saídas previstas</span>
+                <strong className="text-red-600">-{formatCurrency(mockFluxoResumo.contasPagarSemana)}</strong>
+              </div>
+              <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
+                Última variação semanal: {mockFluxoResumo.variacaoSaldo}%
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Alertas críticos</CardTitle>
+              <CardDescription>Observe o planejamento</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {mockFluxoAlertas.map((alerta) => (
+                <div key={alerta.titulo} className="flex items-center justify-between rounded-md border p-2">
+                  <div>
+                    <p className="font-medium">{alerta.titulo}</p>
+                    <p className="text-xs text-muted-foreground">{alerta.descricao}</p>
+                  </div>
+                  <Badge variant="outline" className={alerta.risco === 'alto' ? 'text-red-600 border-red-200' : alerta.risco === 'medio' ? 'text-orange-600 border-orange-200' : 'text-green-600 border-green-200'}>
+                    {alerta.risco}
+                  </Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Gráfico Fluxo Diário */}
       <Card>
