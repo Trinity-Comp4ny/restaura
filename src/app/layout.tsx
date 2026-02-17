@@ -7,14 +7,19 @@ import { viewport } from '@/styles/viewport'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Restaura - Gestão Odontológica',
-    template: '%s | Restaura',
+    default: 'Restaura',
+    template: 'Restaura | %s',
   },
   description:
     'Sistema de gestão odontológica profissional. Gerencie sua clínica com eficiência.',
   keywords: ['odontologia', 'gestão', 'clínica', 'dentista', 'agenda', 'pacientes'],
   authors: [{ name: 'Restaura' }],
   creator: 'Restaura',
+  icons: {
+    icon: 'logos/logo.svg',
+    shortcut: 'logos/logo.svg',
+    apple: 'logos/logo.svg',
+  },
 }
 
 export default function RootLayout({

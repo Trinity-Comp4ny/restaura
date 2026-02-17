@@ -19,9 +19,9 @@ type Consulta = {
 
 const supabase = createClient()
 
-export function useConsultas(startDate?: string, endDate?: string) {
+export function useConsultas(clinicaId?: string, startDate?: string, endDate?: string) {
   return useQuery({
-    queryKey: ['consultas', startDate, endDate],
+    queryKey: ['consultas', clinicaId, startDate, endDate],
     queryFn: async () => {
       let query = supabase
         .from('consultas')
@@ -33,6 +33,9 @@ export function useConsultas(startDate?: string, endDate?: string) {
         `)
         .order('horario_inicio', { ascending: true })
 
+      if (clinicaId) {
+        query = query.eq('clinica_id', clinicaId)
+      }
       if (startDate) {
         query = query.gte('horario_inicio', startDate)
       }
@@ -48,6 +51,7 @@ export function useConsultas(startDate?: string, endDate?: string) {
 
       return data
     },
+    enabled: !!clinicaId,
   })
 }
 

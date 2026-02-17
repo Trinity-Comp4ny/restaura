@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import {
   BentoGrid,
   CTASection,
@@ -6,6 +7,10 @@ import {
   Header,
   HeroSection,
 } from '@/components/landing'
+
+export const metadata: Metadata = {
+  title: 'Início',
+}
 
 export default function HomePage() {
   return (

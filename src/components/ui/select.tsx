@@ -17,6 +17,7 @@ interface SelectGroupProps {
 
 interface SelectValueProps {
   placeholder?: string
+  children?: React.ReactNode
 }
 
 interface SelectTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -60,8 +61,12 @@ const SelectGroup: React.FC<SelectGroupProps> = ({ children }) => {
   return <>{children}</>
 }
 
-const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
+const SelectValue: React.FC<SelectValueProps> = ({ placeholder, children }) => {
   const { value } = React.useContext(SelectContext)
+  
+  if (children) {
+    return <span>{children}</span>
+  }
   
   return <span>{value || placeholder}</span>
 }

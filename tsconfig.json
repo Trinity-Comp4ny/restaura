@@ -52,6 +52,9 @@
       ],
       "@/constants/*": [
         "./src/constants/*"
+      ],
+      "@/db/*": [
+        "./src/lib/db/*"
       ]
     },
     "target": "ES2017"

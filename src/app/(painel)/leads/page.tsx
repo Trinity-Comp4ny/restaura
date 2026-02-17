@@ -18,109 +18,25 @@ import {
 } from '@/components/ui/dropdown-menu'
 import KanbanBoard from '@/components/leads/kanban-board'
 import { formatPhone, formatDate } from '@/lib/utils'
+import { useLeads } from '@/hooks/use-leads'
+import { useUser } from '@/hooks/use-user'
 
 export default function LeadsPage() {
   const router = useRouter()
+  const { data: user } = useUser()
+  const { data: leads = [], isLoading } = useLeads(user?.clinica_id)
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban')
   const [searchTerm, setSearchTerm] = useState('')
-  const [leads, setLeads] = useState([
-    {
-      id: '1',
-      nome: 'João Silva',
-      email: 'joao.silva@email.com',
-      telefone: '11999887766',
-      source: 'Google',
-      status: 'novo',
-      value: 1500,
-      createdAt: '2024-01-15',
-      lastContact: '2024-01-16',
-      observacoes: 'Interessado em clareamento dental',
-      isPatient: false,
-    },
-    {
-      id: '2',
-      nome: 'Maria Santos',
-      email: 'maria.santos@email.com',
-      telefone: '11988776655',
-      source: 'Indicação',
-      status: 'em_contato',
-      value: 800,
-      createdAt: '2024-01-14',
-      lastContact: '2024-01-15',
-      observacoes: 'Buscando ortodontia',
-      isPatient: false,
-    },
-    {
-      id: '3',
-      nome: 'Carlos Oliveira',
-      email: 'carlos.oliveira@email.com',
-      telefone: '11977665544',
-      source: 'Facebook',
-      status: 'proposta_enviada',
-      value: 2500,
-      createdAt: '2024-01-13',
-      lastContact: '2024-01-14',
-      observacoes: 'Precisa de implantes',
-      isPatient: false,
-    },
-    {
-      id: '4',
-      nome: 'Ana Costa',
-      email: 'ana.costa@email.com',
-      telefone: '11966554433',
-      source: 'Instagram',
-      status: 'em_negociacao',
-      value: 1200,
-      createdAt: '2024-01-12',
-      lastContact: '2024-01-13',
-      observacoes: 'Interessada em clareamento',
-      isPatient: false,
-    },
-    {
-      id: '5',
-      nome: 'Pedro Souza',
-      email: 'pedro.souza@email.com',
-      telefone: '11955443322',
-      source: 'Telefone',
-      status: 'ganho',
-      value: 1800,
-      createdAt: '2024-01-10',
-      lastContact: '2024-01-12',
-      observacoes: 'Já é paciente',
-      isPatient: true,
-    },
-    {
-      id: '6',
-      nome: 'Luciana Ferreira',
-      email: 'luciana.ferreira@email.com',
-      telefone: '11944332211',
-      source: 'Presencial',
-      status: 'perdido',
-      value: 900,
-      createdAt: '2024-01-08',
-      lastContact: '2024-01-09',
-      observacoes: 'Não retornou contato',
-      isPatient: false,
-    },
-  ])
 
   const filteredLeads = leads.filter(lead =>
     lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (lead.email && lead.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
     lead.source.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleStatusChange = (leadId: string, newStatus: string) => {
     console.log(`Lead ${leadId} movido para ${newStatus}`)
-    
-    // Atualizar estado local
-    setLeads(prevLeads => 
-      prevLeads.map(lead => 
-        lead.id === leadId 
-          ? { ...lead, status: newStatus, lastContact: new Date().toISOString().split('T')[0] }
-          : lead
-      )
-    )
+    // TODO: Implementar atualização no banco de dados via API
     
     // TODO: Implementar atualização no banco de dados
     // await updateLeadStatus(leadId, newStatus)
@@ -132,48 +48,13 @@ export default function LeadsPage() {
   }
 
   const handleLeadReorder = (leadId: string, newOrder: number) => {
-    console.log(`Lead ${leadId} movido para posição ${newOrder}`)
-    
-    // Implementar reordenação local
-    setLeads(prevLeads => {
-      const leadToMove = prevLeads.find(lead => lead.id === leadId)
-      if (!leadToMove) return prevLeads
-      
-      const otherLeads = prevLeads.filter(lead => lead.id !== leadId && lead.status === leadToMove.status)
-      const leadsInSameStatus = [leadToMove, ...otherLeads].sort((a, b) => {
-        // Manter ordem atual para outros leads
-        const aIndex = prevLeads.findIndex(l => l.id === a.id)
-        const bIndex = prevLeads.findIndex(l => l.id === b.id)
-        return aIndex - bIndex
-      })
-      
-      // Mover lead para nova posição
-      const currentIndex = leadsInSameStatus.findIndex(l => l.id === leadId)
-      if (currentIndex !== -1) {
-        const [removed] = leadsInSameStatus.splice(currentIndex, 1)
-        leadsInSameStatus.splice(newOrder, 0, removed)
-      }
-      
-      // Reconstruir array completo mantendo ordem das outras colunas
-      const otherStatusLeads = prevLeads.filter(lead => lead.status !== leadToMove.status)
-      return [...otherStatusLeads, ...leadsInSameStatus]
-    })
-    
-    // TODO: Implementar atualização no banco de dados
-    // await updateLeadOrder(leadId, newOrder)
+    console.log(`Reordenando lead ${leadId} para posição ${newOrder}`)
+    // TODO: Implementar atualização no banco de dados via API
   }
 
   const handleConvertToPatient = (leadId: string) => {
     console.log(`Convertendo lead ${leadId} para paciente`)
-    
-    // Implementar conversão local
-    setLeads(prevLeads => 
-      prevLeads.map(lead => 
-        lead.id === leadId 
-          ? { ...lead, isPatient: true }
-          : lead
-      )
-    )
+    // TODO: Implementar conversão no banco de dados via API
     
     // TODO: Implementar conversão no banco de dados e criar registro de paciente
     // await convertLeadToPatient(leadId)
@@ -232,7 +113,7 @@ export default function LeadsPage() {
 
       {viewMode === 'kanban' ? (
         <KanbanBoard
-          leads={filteredLeads}
+          leads={filteredLeads as any}
           onLeadClick={handleLeadClick}
           onStatusChange={handleStatusChange}
           onLeadReorder={handleLeadReorder}
@@ -250,7 +131,7 @@ export default function LeadsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {filteredLeads.map((lead) => (
+              {filteredLeads.map((lead: any) => (
                 <Card 
                   key={lead.id}
                   className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.01]"
@@ -262,7 +143,7 @@ export default function LeadsPage() {
                         <div className="flex items-center gap-3 mb-2">
                           <div className="flex-shrink-0">
                             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
-                              {lead.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                              {lead.nome.split(' ').map((n: any) => n[0]).join('').slice(0, 2).toUpperCase()}
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
@@ -300,21 +181,16 @@ export default function LeadsPage() {
                              lead.status === 'ganho' ? 'Ganho' :
                              'Perdido'}
                           </Badge>
-                          {lead.isPatient && (
-                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-200">
-                              Paciente
-                            </Badge>
-                          )}
-                        </div>
+                                                  </div>
                       </div>
                       
                       <div className="flex flex-col items-end gap-2 ml-4">
                         <div className="text-right">
                           <div className="font-semibold text-green-600">
-                            R$ {lead.value.toLocaleString('pt-BR')}
+                            R$ {(lead.value || 0).toLocaleString('pt-BR')}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {formatDate(lead.lastContact)}
+                            {lead.created_at ? formatDate(lead.created_at) : ''}
                           </div>
                         </div>
                         

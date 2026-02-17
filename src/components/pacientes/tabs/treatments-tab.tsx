@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import { useMockTratamentos } from '@/lib/api-mock-client'
+import { useHistoricoPaciente } from '@/hooks/use-consultas'
 
 interface TreatmentsTabProps {
   pacienteId: string
@@ -22,46 +22,10 @@ export function TreatmentsTab({ pacienteId }: TreatmentsTabProps) {
   const [showNewTreatmentDialog, setShowNewTreatmentDialog] = useState(false)
   const [selectedTreatment, setSelectedTreatment] = useState<any>(null)
 
-  // Buscar tratamentos via API
-  const { data: mockData } = useMockTratamentos({ pacienteId }) as { data?: { data: any[] } }
+  // Buscar histórico de consultas do paciente como base para tratamentos
+  const { data: historico } = useHistoricoPaciente(pacienteId)
 
-  const [treatments, setTreatments] = useState(() => {
-    const data = mockData?.data || []
-    const mapStatus = (status: string) => {
-      switch (status) {
-        case 'pendente':
-          return 'pending'
-        case 'em_andamento':
-          return 'in_progress'
-        case 'concluido':
-          return 'completed'
-        default:
-          return status
-      }
-    }
-
-    return data
-      .filter((t) => String(t.paciente_id) === String(pacienteId))
-      .map((t) => ({
-        id: t.id,
-        nome: t.nome,
-        status: mapStatus(t.status),
-        created_date: t.criado_em,
-        expected_completion: t.previsao_conclusao,
-        total_value: t.valor_total,
-        paid_value: t.valor_pago,
-        procedures: (t.procedimentos || []).map((p: any) => ({
-          id: p.id,
-          nome: p.nome,
-          status: p.status,
-          value: p.valor,
-          date: p.data,
-          professional: p.profissional,
-        })),
-        observations: t.observacoes,
-        priority: t.prioridade === 'alta' ? 'high' : t.prioridade === 'baixa' ? 'low' : 'medium',
-      }))
-  })
+  const [treatments, setTreatments] = useState<any[]>([])
 
   const getStatusInfo = (status: string) => {
     switch (status) {

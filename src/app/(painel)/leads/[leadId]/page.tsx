@@ -71,7 +71,7 @@ const statusLabels: Record<string, string> = {
 export default function LeadDetalhePage() {
   const router = useRouter()
   const params = useParams()
-  const leadId = params.leadId as string
+  const leadId = (params?.leadId as string) || ''
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const lead = mockLeads.find(l => l.id === leadId)

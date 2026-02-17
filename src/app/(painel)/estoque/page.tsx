@@ -27,7 +27,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { formatCurrency } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useMockEstoque } from '@/lib/api-mock-client'
+import { useProdutos } from '@/hooks/use-estoque'
 
 // Componente leve para status do produto
 function ProductStatusBadge({ product }: { product: any }) {
@@ -242,14 +242,13 @@ export default function EstoquePage() {
   const [category, setCategory] = useState('')
   const [status, setStatus] = useState('')
 
-  // Usar hook otimizado que busca via API route (server-side mock)
-  const { data: estoqueData, isLoading } = useMockEstoque({
-    search,
-    category,
-    status,
-  }) as { data?: { data: any[] }, isLoading: boolean }
+  const { data: allProducts, isLoading } = useProdutos()
 
-  const products = estoqueData?.data || []
+  const products = (allProducts || []).filter((p: any) => {
+    const matchSearch = !search || p.nome.toLowerCase().includes(search.toLowerCase())
+    const matchCategory = !category || p.category === category
+    return matchSearch && matchCategory
+  })
 
   return (
     <div className="space-y-6">

@@ -6,19 +6,26 @@ type Usuario = Database['public']['Tables']['usuarios']['Row']
 
 const supabase = createClient()
 
-export function useDentistas() {
+export function useDentistas(clinicaId?: string) {
   return useQuery({
-    queryKey: ['dentistas'],
+    queryKey: ['dentistas', clinicaId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('usuarios')
         .select('*')
         .eq('papel', 'dentista')
         .order('nome', { ascending: true })
 
+      if (clinicaId) {
+        query = query.eq('clinica_id', clinicaId)
+      }
+
+      const { data, error } = await query
+
       if (error) throw error
       return data as Usuario[]
     },
+    enabled: !!clinicaId,
   })
 }
 

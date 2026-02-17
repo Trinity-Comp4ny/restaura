@@ -12,8 +12,40 @@ export function formatCurrency(value: number): string {
   }).format(value)
 }
 
+ function parseDateValue(date: Date | string): Date {
+   if (date instanceof Date) return date
+
+   const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(date)
+   if (isDateOnly) {
+     const [y, m, d] = date.split('-').map(Number)
+     return new Date(y, (m || 1) - 1, d || 1)
+   }
+
+   return new Date(date)
+ }
+
+ export function getLocalISODate(date: Date = new Date()): string {
+  const y = date.getFullYear()
+	const m = String(date.getMonth() + 1).padStart(2, '0')
+	const d = String(date.getDate()).padStart(2, '0')
+	return `${y}-${m}-${d}`
+}
+
+export function addDaysToISODate(isoDate: string, days: number): string {
+  const base = parseDateValue(isoDate)
+  base.setDate(base.getDate() + days)
+  return getLocalISODate(base)
+}
+
+export function diffDaysFromToday(date: Date | string): number {
+  const base = parseDateValue(date)
+  const today = parseDateValue(getLocalISODate())
+  const diffMs = today.getTime() - base.getTime()
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24))
+}
+
 export function formatDate(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+  const d = parseDateValue(date)
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -22,7 +54,7 @@ export function formatDate(date: Date | string): string {
 }
 
 export function formatDateTime(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+  const d = parseDateValue(date)
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -33,7 +65,7 @@ export function formatDateTime(date: Date | string): string {
 }
 
 export function formatTime(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
+  const d = parseDateValue(date)
   return new Intl.DateTimeFormat('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',

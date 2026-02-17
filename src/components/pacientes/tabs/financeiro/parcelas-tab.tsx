@@ -12,70 +12,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { useParcelasPaciente } from '@/hooks/use-financeiro-paciente'
 
 interface ParcelasTabProps {
   pacienteId: string
 }
-
-interface PlanoParcelamento {
-  id: string
-  tratamento: string
-  valorTotal: number
-  entrada: number
-  numParcelas: number
-  valorParcela: number
-  dataInicio: string
-  status: 'ativo' | 'quitado' | 'inadimplente'
-  parcelas: Parcela[]
-}
-
-interface Parcela {
-  id: string
-  numero: number
-  valor: number
-  dataVencimento: string
-  dataPagamento: string | null
-  status: 'pago' | 'pendente' | 'vencido' | 'a_vencer'
-  metodo: string | null
-}
-
-const mockPlanos: PlanoParcelamento[] = [
-  {
-    id: '1',
-    tratamento: 'Reabilitação Oral Superior',
-    valorTotal: 4800.00,
-    entrada: 800.00,
-    numParcelas: 8,
-    valorParcela: 500.00,
-    dataInicio: '2024-01-15',
-    status: 'ativo',
-    parcelas: [
-      { id: 'p1', numero: 0, valor: 800.00, dataVencimento: '2024-01-15', dataPagamento: '2024-01-15', status: 'pago', metodo: 'PIX' },
-      { id: 'p2', numero: 1, valor: 500.00, dataVencimento: '2024-02-15', dataPagamento: '2024-02-15', status: 'pago', metodo: 'Convênio' },
-      { id: 'p3', numero: 2, valor: 500.00, dataVencimento: '2024-03-15', dataPagamento: '2024-03-14', status: 'pago', metodo: 'Convênio' },
-      { id: 'p4', numero: 3, valor: 500.00, dataVencimento: '2024-04-15', dataPagamento: null, status: 'vencido', metodo: null },
-      { id: 'p5', numero: 4, valor: 500.00, dataVencimento: '2024-05-15', dataPagamento: null, status: 'pendente', metodo: null },
-      { id: 'p6', numero: 5, valor: 500.00, dataVencimento: '2024-06-15', dataPagamento: null, status: 'a_vencer', metodo: null },
-      { id: 'p7', numero: 6, valor: 500.00, dataVencimento: '2024-07-15', dataPagamento: null, status: 'a_vencer', metodo: null },
-      { id: 'p8', numero: 7, valor: 500.00, dataVencimento: '2024-08-15', dataPagamento: null, status: 'a_vencer', metodo: null },
-    ],
-  },
-  {
-    id: '2',
-    tratamento: 'Clareamento Dental',
-    valorTotal: 1200.00,
-    entrada: 400.00,
-    numParcelas: 2,
-    valorParcela: 400.00,
-    dataInicio: '2024-03-01',
-    status: 'quitado',
-    parcelas: [
-      { id: 'p9', numero: 0, valor: 400.00, dataVencimento: '2024-03-01', dataPagamento: '2024-03-01', status: 'pago', metodo: 'Cartão de crédito' },
-      { id: 'p10', numero: 1, valor: 400.00, dataVencimento: '2024-04-01', dataPagamento: '2024-03-28', status: 'pago', metodo: 'Cartão de crédito' },
-      { id: 'p11', numero: 2, valor: 400.00, dataVencimento: '2024-05-01', dataPagamento: '2024-04-30', status: 'pago', metodo: 'Cartão de crédito' },
-    ],
-  },
-]
 
 const statusParcelaConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
   pago: { label: 'Pago', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', icon: CheckCircle },
@@ -91,20 +32,48 @@ const statusPlanoConfig: Record<string, { label: string; color: string }> = {
 }
 
 export function ParcelasTab({ pacienteId }: ParcelasTabProps) {
-  const [expandedPlano, setExpandedPlano] = useState<string | null>(mockPlanos[0]?.id || null)
+  const { data: parcelas = [], isLoading } = useParcelasPaciente(pacienteId)
+  const [expandedPlano, setExpandedPlano] = useState<string | null>(null)
   const [showNovoPlano, setShowNovoPlano] = useState(false)
   const [filterStatus, setFilterStatus] = useState('todos')
 
-  const totalVencido = mockPlanos.reduce((sum, plano) =>
-    sum + plano.parcelas.filter((p) => p.status === 'vencido').reduce((s, p) => s + p.valor, 0), 0)
-  const totalPendente = mockPlanos.reduce((sum, plano) =>
-    sum + plano.parcelas.filter((p) => p.status === 'pendente' || p.status === 'a_vencer').reduce((s, p) => s + p.valor, 0), 0)
-  const totalPago = mockPlanos.reduce((sum, plano) =>
-    sum + plano.parcelas.filter((p) => p.status === 'pago').reduce((s, p) => s + p.valor, 0), 0)
+  if (isLoading) {
+    return <div>Carregando...</div>
+  }
+
+  // Group parcelas by plano
+  const planos = parcelas.reduce((acc: any, p: any) => {
+    const planoId = p.plano_id || 'sem-plano'
+    if (!acc[planoId]) {
+      acc[planoId] = {
+        id: planoId,
+        tratamento: p.tratamento || 'Sem tratamento',
+        valorTotal: (acc[planoId]?.valorTotal || 0) + (p.valor || 0),
+        entrada: 0,
+        numParcelas: 0,
+        valorParcela: p.valor || 0,
+        dataInicio: p.data_vencimento || '',
+        status: 'ativo',
+        parcelas: []
+      }
+    }
+    acc[planoId].parcelas.push(p)
+    acc[planoId].numParcelas = acc[planoId].parcelas.length
+    return acc
+  }, {})
+
+  const planosArray = Object.values(planos)
+
+  const totalVencido = planosArray.reduce((sum: number, plano: any) =>
+    sum + plano.parcelas.filter((p: any) => p.status === 'vencido').reduce((s: number, p: any) => s + (p.valor || 0), 0), 0)
+  const totalPendente = planosArray.reduce((sum: number, plano: any) =>
+    sum + plano.parcelas.filter((p: any) => p.status === 'pendente' || p.status === 'a_vencer').reduce((s: number, p: any) => s + (p.valor || 0), 0), 0)
+  const totalPago = planosArray.reduce((sum: number, plano: any) =>
+    sum + plano.parcelas.filter((p: any) => p.status === 'pago').reduce((s: number, p: any) => s + (p.valor || 0), 0), 0)
 
   const filteredPlanos = filterStatus === 'todos'
-    ? mockPlanos
-    : mockPlanos.filter((p) => p.status === filterStatus)
+    ? planosArray
+    : planosArray.filter((p: any) => p.status === filterStatus)
 
   return (
     <div className="space-y-4">
@@ -132,7 +101,7 @@ export function ParcelasTab({ pacienteId }: ParcelasTabProps) {
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Planos Ativos</p>
-            <p className="text-2xl font-bold">{mockPlanos.filter((p) => p.status === 'ativo').length}</p>
+            <p className="text-2xl font-bold">{planosArray.filter((p: any) => p.status === 'ativo').length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -176,9 +145,9 @@ export function ParcelasTab({ pacienteId }: ParcelasTabProps) {
 
       {/* Lista de Planos */}
       <div className="space-y-4">
-        {filteredPlanos.map((plano) => {
+        {filteredPlanos.map((plano: any) => {
           const isExpanded = expandedPlano === plano.id
-          const parcelasPagas = plano.parcelas.filter((p) => p.status === 'pago').length
+          const parcelasPagas = plano.parcelas.filter((p: any) => p.status === 'pago').length
           const progressPercent = Math.round((parcelasPagas / plano.parcelas.length) * 100)
           const planoConfig = statusPlanoConfig[plano.status]
 
@@ -230,7 +199,7 @@ export function ParcelasTab({ pacienteId }: ParcelasTabProps) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {plano.parcelas.map((parcela) => {
+                      {plano.parcelas.map((parcela: any) => {
                         const config = statusParcelaConfig[parcela.status]
                         const Icon = config.icon
                         return (

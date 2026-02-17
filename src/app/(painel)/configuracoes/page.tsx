@@ -1,211 +1,186 @@
 'use client'
 
 import Link from 'next/link'
-import { User, Building, Users as UsersIcon, Calendar, CreditCard, Bell, Shield, Database, DollarSign } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bell, Building, Database, DollarSign, LayoutGrid, Shield, Sparkles, User, Users as UsersIcon } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 
 export default function ConfiguracoesPage() {
-  const configuracoesSections = [
+  const essentials = [
     {
       title: 'Perfil do Usuário',
-      description: 'Gerencie suas informações pessoais e preferências',
+      description: 'Dados pessoais, assinatura e preferências de acesso',
       href: '/configuracoes/perfil',
       icon: User,
-      color: 'bg-blue-100 text-blue-800',
+      tone: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-100',
     },
     {
       title: 'Dados da Clínica',
-      description: 'Atualize informações da clínica e configurações gerais',
+      description: 'Identidade, documentos fiscais e canais de contato',
       href: '/configuracoes/clinica',
       icon: Building,
-      color: 'bg-green-100 text-green-800',
-    },
-    {
-      title: 'Multi-clínicas',
-      description: 'Gerencie múltiplas clínicas da rede',
-      href: '/configuracoes/multi-clinicas',
-      icon: Building,
-      color: 'bg-indigo-100 text-indigo-800',
-    },
-    {
-      title: 'Equipe',
-      description: 'Gerencie usuários e permissões da equipe',
-      href: '/configuracoes/equipe',
-      icon: UsersIcon,
-      color: 'bg-purple-100 text-purple-800',
-    },
-    {
-      title: 'Procedimentos',
-      description: 'Cadastre e gerencie procedimentos e valores',
-      href: '/configuracoes/procedimentos',
-      icon: Calendar,
-      color: 'bg-orange-100 text-orange-800',
+      tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100',
     },
     {
       title: 'Financeiro',
-      description: 'Configure categorias, métodos de pagamento e contas',
+      description: 'Categorias, contas bancárias e métodos de pagamento',
       href: '/configuracoes/financeiro',
       icon: DollarSign,
-      color: 'bg-emerald-100 text-emerald-800',
+      tone: 'bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-100',
+    },
+  ]
+
+  const operations = [
+    {
+      title: 'Equipe e permissões',
+      description: 'Perfis de acesso, convites e papéis da equipe',
+      href: '/configuracoes/equipe',
+      icon: UsersIcon,
+      tone: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-100',
+    },
+    {
+      title: 'Multi-clínicas',
+      description: 'Redes, filiais e governança centralizada',
+      href: '/configuracoes/multi-clinicas',
+      icon: LayoutGrid,
+      tone: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-100',
+    },
+    {
+      title: 'Procedimentos',
+      description: 'Tabela de procedimentos, códigos e valores',
+      href: '/configuracoes/procedimentos',
+      icon: Sparkles,
+      tone: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100',
+      disabled: true,
     },
     {
       title: 'Notificações',
-      description: 'Configure alertas e lembretes automáticos',
+      description: 'Alertas automáticos, lembretes e canais',
       href: '/configuracoes/notificacoes',
       icon: Bell,
-      color: 'bg-yellow-100 text-yellow-800',
+      tone: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-100',
+      disabled: true,
     },
     {
       title: 'Segurança',
-      description: 'Gerencie senhas e autenticação',
+      description: 'Autenticação, sessões e dispositivos confiáveis',
       href: '/configuracoes/seguranca',
       icon: Shield,
-      color: 'bg-red-100 text-red-800',
+      tone: 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-100',
+      disabled: true,
     },
     {
       title: 'Backup e Dados',
-      description: 'Gerencie backup e exportação de dados',
+      description: 'Exportações, retenção e políticas de backup',
       href: '/configuracoes/backup',
       icon: Database,
-      color: 'bg-gray-100 text-gray-800',
+      tone: 'bg-slate-100 text-slate-800 dark:bg-slate-900/40 dark:text-slate-100',
+      disabled: true,
     },
   ]
 
-  const quickStats = [
-    { label: 'Usuários Ativos', value: '8', change: '+2' },
-    { label: 'Procedimentos', value: '24', change: '+4' },
-    { label: 'Formas Pagamento', value: '6', change: '0' },
-    { label: 'Backup Automático', value: 'Ativo', change: '' },
+  const health = [
+    { label: 'Usuários ativos', value: '8', hint: 'em toda a rede', tone: 'text-emerald-600 dark:text-emerald-300' },
+    { label: 'Procedimentos cadastrados', value: '24', hint: 'tabela atualizada', tone: 'text-sky-600 dark:text-sky-300' },
+    { label: 'Formas de pagamento', value: '6', hint: 'cartões, pix, boletos', tone: 'text-amber-600 dark:text-amber-300' },
+    { label: 'Backup automático', value: 'Ativo', hint: 'última execução há 12h', tone: 'text-teal-600 dark:text-teal-300' },
   ]
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-        <p className="text-muted-foreground">
-          Gerencie as configurações do sistema e da clínica.
-        </p>
+    <div className="space-y-8">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="sm" className="flex items-center gap-2">
+            <Link href="/home">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-semibold tracking-tight">Configurações</h1>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {quickStats.map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                </div>
-                {stat.change && (
-                  <Badge variant="outline" className="text-xs">
-                    {stat.change}
-                  </Badge>
-                )}
+      <div className="grid gap-6">
+        <div className="space-y-4">
+          <div className="rounded-2xl border bg-card/60 p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold">Essenciais</h2>
+                <p className="text-sm text-muted-foreground">Primeiras configurações para deixar sua clínica pronta.</p>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {essentials.map((section, index) => (
+                <Link key={index} href={section.href}>
+                  <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-md">
+                    <CardHeader className="flex flex-row items-start gap-3">
+                      <div className={`rounded-lg p-2 ${section.tone}`}>
+                        <section.icon className="h-5 w-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <CardTitle className="text-base">{section.title}</CardTitle>
+                        <CardDescription>{section.description}</CardDescription>
+                      </div>
+                      <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {configuracoesSections.map((section, index) => (
-          <Link key={index} href={section.href}>
-            <Card className="transition-colors hover:bg-muted/50 cursor-pointer">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${section.color}`}>
-                      <section.icon className="h-5 w-5" />
+          <div className="rounded-2xl border bg-card/60 p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold">Operação e governança</h2>
+                <p className="text-sm text-muted-foreground">Controle fino de rede, equipe e comunicações.</p>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {operations.map((section, index) => {
+                const cardBody = (
+                  <Card
+                    className={`h-full transition-all ${
+                      section.disabled ? 'cursor-not-allowed opacity-60' : 'hover:-translate-y-0.5 hover:shadow-md'
+                    }`}
+                  >
+                    <CardHeader className="flex flex-row items-start gap-3">
+                      <div className={`rounded-lg p-2 ${section.tone}`}>
+                        <section.icon className="h-5 w-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          {section.title}
+                          {section.disabled && <Badge variant="outline">Em breve</Badge>}
+                        </CardTitle>
+                        <CardDescription>{section.description}</CardDescription>
+                      </div>
+                      {!section.disabled && <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" />}
+                    </CardHeader>
+                  </Card>
+                )
+
+                if (section.disabled) {
+                  return (
+                    <div key={index} className="h-full">
+                      {cardBody}
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{section.title}</CardTitle>
-                      <CardDescription className="text-sm">
-                        {section.description}
-                      </CardDescription>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          </Link>
-        ))}
+                  )
+                }
+
+                return (
+                  <Link key={index} href={section.href}>
+                    {cardBody}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Configurações Rápidas</CardTitle>
-          <CardDescription>
-            Ações frequentes e atalhos.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium">Modo Escuro</h4>
-              <p className="text-sm text-muted-foreground">
-                Alterne entre tema claro e escuro
-              </p>
-            </div>
-            <Button variant="outline" size="sm">
-              Configurar
-            </Button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium">Idioma</h4>
-              <p className="text-sm text-muted-foreground">
-                Português (Brasil)
-              </p>
-            </div>
-            <Button variant="outline" size="sm">
-              Alterar
-            </Button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium">Fuso Horário</h4>
-              <p className="text-sm text-muted-foreground">
-                America/Sao_Paulo (UTC-3)
-              </p>
-            </div>
-            <Button variant="outline" size="sm">
-              Ajustar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações do Sistema</CardTitle>
-          <CardDescription>
-            Detalhes técnicos sobre a instalação.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <h4 className="font-medium">Versão do Sistema</h4>
-              <p className="text-sm text-muted-foreground">v1.0.0</p>
-            </div>
-            <div>
-              <h4 className="font-medium">Última Atualização</h4>
-              <p className="text-sm text-muted-foreground">15/01/2024</p>
-            </div>
-            <div>
-              <h4 className="font-medium">Ambiente</h4>
-              <p className="text-sm text-muted-foreground">Produção</p>
-            </div>
-            <div>
-              <h4 className="font-medium">Licença</h4>
-              <p className="text-sm text-muted-foreground">Profissional</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

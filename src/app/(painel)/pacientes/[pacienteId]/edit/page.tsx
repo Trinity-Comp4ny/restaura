@@ -14,7 +14,7 @@ type Paciente = Database['public']['Tables']['pacientes']['Row']
 export default function EditarPacientePage() {
   const params = useParams()
   const router = useRouter()
-  const pacienteId = params.pacienteId as string
+  const pacienteId = (params?.pacienteId as string) || ''
 
   const { data: paciente, isLoading } = usePaciente(pacienteId)
 

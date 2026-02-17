@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useCreateConsulta } from '@/hooks/use-consultas'
 import { useUser } from '@/hooks/use-user'
 import { getActiveProcedures } from '@/constants/procedures'
-import { useMockSelects } from '@/lib/api-mock-client'
+import { useProcedimentos } from '@/hooks/use-procedimentos'
 import Link from 'next/link'
 
 const agendamentoSchema = z.object({
@@ -70,9 +70,9 @@ const tiposConsulta = [
 function NovoAgendamentoPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: procedimentosData } = useMockSelects('procedimentos') as { data?: any[] }
+  const { data: procedimentosData } = useProcedimentos()
   const procedimentosMock = getActiveProcedures(procedimentosData || [])
-  const pacienteIdParam = searchParams.get('paciente_id')
+  const pacienteIdParam = searchParams?.get('paciente_id')
   const { data: user } = useUser()
   const createConsulta = useCreateConsulta()
 

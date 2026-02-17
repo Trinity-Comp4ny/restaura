@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/types/database.types'
@@ -8,19 +9,26 @@ type ProcedimentoUpdate = Database['public']['Tables']['procedimentos']['Update'
 
 const supabase = createClient()
 
-export function useProcedimentos() {
+export function useProcedimentos(clinicaId?: string) {
   return useQuery({
-    queryKey: ['procedimentos'],
+    queryKey: ['procedimentos', clinicaId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('procedimentos')
         .select('*')
         .eq('ativo', true)
         .order('nome', { ascending: true })
 
+      if (clinicaId) {
+        query = query.eq('clinica_id', clinicaId)
+      }
+
+      const { data, error } = await query
+
       if (error) throw error
       return data as Procedimento[]
     },
+    enabled: !!clinicaId,
   })
 }
 
@@ -46,9 +54,10 @@ export function useCreateProcedimento() {
 
   return useMutation({
     mutationFn: async (procedimento: ProcedimentoInsert) => {
-      const { data, error } = await (supabase
-        .from('procedimentos') as any)
-        .insert(procedimento)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('procedimentos')
+        .insert([procedimento])
         .select()
         .single()
 
@@ -66,8 +75,9 @@ export function useUpdateProcedimento() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: ProcedimentoUpdate & { id: string }) => {
-      const { data, error } = await (supabase
-        .from('procedimentos') as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('procedimentos')
         .update(updates)
         .eq('id', id)
         .select()
@@ -88,8 +98,9 @@ export function useInativarProcedimento() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await (supabase
-        .from('procedimentos') as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('procedimentos')
         .update({ ativo: false })
         .eq('id', id)
         .select()

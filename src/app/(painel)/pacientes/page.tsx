@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Plus, Search, Filter, MoreHorizontal } from 'lucide-react'
 import { useMemo } from 'react'
 
+import { useDocumentTitle } from '@/hooks/use-document-title'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,19 +23,16 @@ import { getInitials, formatPhone, formatDate } from '@/lib/utils'
 import { usePacientes, useDeletePaciente } from '@/hooks/use-pacientes'
 import { useUltimasVisitas } from '@/hooks/use-ultimas-visitas'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useMockPacientes } from '@/lib/api-mock-client'
 import type { Database } from '@/types/database.types'
 
 type Paciente = Database['public']['Tables']['pacientes']['Row']
 
 export default function PatientsPage() {
+  useDocumentTitle('Pacientes')
   const router = useRouter()
   const { data: patients, isLoading } = usePacientes()
   const deletePaciente = useDeletePaciente()
-  
-  // Se não houver pacientes do banco, usa dados mock via API
-  const { data: mockData } = useMockPacientes() as { data?: { data: any[] } }
-  const displayPatients = (patients && patients.length > 0 ? patients : mockData?.data) || []
+  const displayPatients = patients || []
   
   // Buscar últimas visitas de todos os pacientes (memoizado)
   const pacienteIds = useMemo(() => displayPatients.map((p: any) => p.id), [displayPatients])
@@ -47,6 +46,8 @@ export default function PatientsPage() {
       </div>
     )
   }
+
+  const hasPatients = displayPatients.length > 0
 
   return (
     <div className="space-y-6">
@@ -82,7 +83,8 @@ export default function PatientsPage() {
           <div>Última Visita</div>
           <div className="w-10"></div>
         </div>
-        <div className="divide-y">
+        {hasPatients ? (
+          <div className="divide-y">
           {displayPatients?.map((patient: any) => {
             const ultimaVisita = ultimasVisitas?.[patient.id]
             return (
@@ -175,6 +177,17 @@ export default function PatientsPage() {
             )
           })}
         </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
+            <p className="text-lg font-semibold">Nenhum paciente cadastrado ainda</p>
+            <p className="text-sm text-muted-foreground">
+              Comece cadastrando pacientes ou importando sua base para visualizar informações por aqui.
+            </p>
+            <Link href="/pacientes/novo">
+              <Button className="mt-2">Cadastrar primeiro paciente</Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )

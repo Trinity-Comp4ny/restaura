@@ -72,12 +72,12 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        sans: ['var(--font-space-grotesk)', 'var(--font-inter)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-space-grotesk)', 'var(--font-inter)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'system-ui', 'sans-serif'],
         serif: ['var(--font-space-grotesk)', 'Georgia', 'serif'],
-        mono: ['var(--font-jetbrains)', 'monospace'],
-        display: ['var(--font-space-grotesk)', 'var(--font-inter)', 'sans-serif'],
-        grotesk: ['var(--font-space-grotesk)', 'sans-serif'],
-        inter: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains)', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Consolas', 'monospace'],
+        display: ['var(--font-space-grotesk)', 'var(--font-inter)', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        grotesk: ['var(--font-space-grotesk)', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        inter: ['var(--font-inter)', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1rem' }],

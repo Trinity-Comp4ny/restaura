@@ -4,42 +4,10 @@ import { TrendingUp, TrendingDown, DollarSign, AlertCircle, CheckCircle, Clock, 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { useResumoFinanceiroPaciente, useTransacoesPaciente } from '@/hooks/use-financeiro-paciente'
 
 interface ResumoFinanceiroProps {
   pacienteId: string
-}
-
-// Mock data
-const mockResumo = {
-  totalGeral: 5400.00,
-  totalPago: 3550.00,
-  totalPendente: 1400.00,
-  totalVencido: 450.00,
-  totalOrcamentos: 8200.00,
-  orcamentosAprovados: 5400.00,
-  ticketMedio: 675.00,
-  ultimoPagamento: '2024-03-10',
-  proximoVencimento: '2024-04-15',
-  historicoMensal: [
-    { mes: 'Jan', receita: 150.00, pago: true },
-    { mes: 'Fev', receita: 400.00, pago: true },
-    { mes: 'Mar', receita: 400.00, pago: true },
-    { mes: 'Abr', receita: 450.00, pago: false },
-    { mes: 'Mai', receita: 400.00, pago: false },
-    { mes: 'Jun', receita: 400.00, pago: false },
-  ],
-  ultimasMovimentacoes: [
-    { id: '1', descricao: 'Consulta de Avaliação', valor: 150.00, data: '2024-01-15', status: 'pago', metodo: 'Cartão de crédito' },
-    { id: '2', descricao: 'Tratamento Periodontal - 1ª parcela', valor: 400.00, data: '2024-02-20', status: 'pago', metodo: 'Convênio' },
-    { id: '3', descricao: 'Tratamento Periodontal - 2ª parcela', valor: 400.00, data: '2024-03-15', status: 'pendente', metodo: 'Convênio' },
-    { id: '4', descricao: 'Clareamento Dental', valor: 450.00, data: '2024-04-10', status: 'vencido', metodo: 'Cartão de débito' },
-  ],
-  distribuicaoMetodo: [
-    { metodo: 'Cartão de crédito', valor: 1150.00, percentual: 32 },
-    { metodo: 'Convênio', valor: 1600.00, percentual: 45 },
-    { metodo: 'Cartão de débito', valor: 450.00, percentual: 13 },
-    { metodo: 'Dinheiro', valor: 350.00, percentual: 10 },
-  ],
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
@@ -49,8 +17,14 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 }
 
 export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
-  const data = mockResumo
-  const percentualPago = Math.round((data.totalPago / data.totalGeral) * 100)
+  const { data: resumo, isLoading } = useResumoFinanceiroPaciente(pacienteId)
+  const { data: transacoes } = useTransacoesPaciente(pacienteId)
+  
+  if (isLoading || !resumo) {
+    return <div>Carregando...</div>
+  }
+  
+  const percentualPago = Math.round((resumo.total_pago / resumo.total_geral) * 100)
 
   return (
     <div className="space-y-6">
@@ -64,7 +38,7 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Total Pago</p>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(data.totalPago)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(resumo.total_pago)}</p>
               </div>
             </div>
           </CardContent>
@@ -78,7 +52,7 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Pendente</p>
-                <p className="text-2xl font-bold text-yellow-600">{formatCurrency(data.totalPendente)}</p>
+                <p className="text-2xl font-bold text-yellow-600">{formatCurrency(resumo.total_pendente)}</p>
               </div>
             </div>
           </CardContent>
@@ -92,7 +66,7 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Vencido</p>
-                <p className="text-2xl font-bold text-red-600">{formatCurrency(data.totalVencido)}</p>
+                <p className="text-2xl font-bold text-red-600">{formatCurrency(resumo.total_vencido)}</p>
               </div>
             </div>
           </CardContent>
@@ -106,7 +80,7 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-sm text-muted-foreground">Total Geral</p>
-                <p className="text-2xl font-bold">{formatCurrency(data.totalGeral)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(resumo.total_geral)}</p>
               </div>
             </div>
           </CardContent>
@@ -123,7 +97,7 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {formatCurrency(data.totalPago)} de {formatCurrency(data.totalGeral)}
+                {formatCurrency(resumo.total_pago)} de {formatCurrency(resumo.total_geral)}
               </span>
               <span className="font-medium">{percentualPago}%</span>
             </div>
@@ -136,22 +110,26 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
 
             {/* Barra visual mensal */}
             <div className="pt-4">
-              <p className="text-sm font-medium mb-3">Cronograma de Parcelas</p>
+              <p className="text-sm font-medium mb-3">Histórico de Transações</p>
               <div className="flex items-end gap-2">
-                {data.historicoMensal.map((item, i) => (
+                {transacoes?.slice(0, 6).map((item: any, i: number) => (
                   <div key={i} className="flex-1 text-center">
                     <div className="relative mx-auto mb-1">
                       <div
                         className={`mx-auto w-full rounded-t transition-colors ${
-                          item.pago
+                          item.status === 'pago'
                             ? 'bg-green-500'
-                            : 'bg-muted-foreground/20'
+                            : item.status === 'vencido'
+                            ? 'bg-red-500'
+                            : 'bg-yellow-500'
                         }`}
-                        style={{ height: `${Math.max((item.receita / 500) * 60, 12)}px` }}
+                        style={{ height: `${Math.max((item.valor / 500) * 60, 12)}px` }}
                       />
                     </div>
-                    <span className="text-xs text-muted-foreground">{item.mes}</span>
-                    <p className="text-xs font-medium">{formatCurrency(item.receita)}</p>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(item.data).toLocaleDateString('pt-BR', { month: 'short' })}
+                    </span>
+                    <p className="text-xs font-medium">{formatCurrency(item.valor)}</p>
                   </div>
                 ))}
               </div>
@@ -167,27 +145,27 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Ticket Médio</span>
-                <span className="text-sm font-medium">{formatCurrency(data.ticketMedio)}</span>
+                <span className="text-sm font-medium">{formatCurrency(resumo.ticket_medio)}</span>
               </div>
               <div className="h-px bg-border" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Último Pagamento</span>
-                <span className="text-sm font-medium">{formatDate(data.ultimoPagamento)}</span>
+                <span className="text-sm font-medium">{resumo.ultimo_pagamento ? formatDate(resumo.ultimo_pagamento) : 'N/A'}</span>
               </div>
               <div className="h-px bg-border" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Próximo Vencimento</span>
-                <span className="text-sm font-medium text-yellow-600">{formatDate(data.proximoVencimento)}</span>
+                <span className="text-sm font-medium text-yellow-600">{resumo.proximo_vencimento ? formatDate(resumo.proximo_vencimento) : 'N/A'}</span>
               </div>
               <div className="h-px bg-border" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Orçamentos</span>
-                <span className="text-sm font-medium">{formatCurrency(data.totalOrcamentos)}</span>
+                <span className="text-sm font-medium">{formatCurrency(resumo.total_orcamentos)}</span>
               </div>
               <div className="h-px bg-border" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Aprovados</span>
-                <span className="text-sm font-medium text-green-600">{formatCurrency(data.orcamentosAprovados)}</span>
+                <span className="text-sm font-medium text-green-600">{formatCurrency(resumo.orcamentos_aprovados)}</span>
               </div>
             </div>
           </CardContent>
@@ -203,7 +181,7 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {data.ultimasMovimentacoes.map((mov) => {
+              {transacoes?.slice(0, 5).map((mov: any) => {
                 const config = statusConfig[mov.status]
                 return (
                   <div key={mov.id} className="flex items-center justify-between rounded-lg border p-3">
@@ -221,7 +199,7 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{mov.descricao}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(mov.data)} • {mov.metodo}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(mov.data)} • {mov.metodo_pagamento}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-2">
@@ -242,7 +220,26 @@ export function ResumoFinanceiro({ pacienteId }: ResumoFinanceiroProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {data.distribuicaoMetodo.map((item, i) => {
+              {(() => {
+                // Calculate distribution from real transactions
+                const distribution = transacoes?.reduce((acc: any, trans: any) => {
+                  const method = trans.metodo_pagamento || 'Outros'
+                  if (!acc[method]) {
+                    acc[method] = { valor: 0, count: 0 }
+                  }
+                  acc[method].valor += trans.valor || 0
+                  acc[method].count += 1
+                  return acc
+                }, {}) || {}
+
+                const total = (Object.values(distribution) as any[]).reduce((sum: number, item: any) => sum + item.valor, 0)
+                
+                return Object.entries(distribution).map(([metodo, data]: [string, any], i: number) => ({
+                  metodo,
+                  valor: data.valor,
+                  percentual: total > 0 ? Math.round((data.valor / total) * 100) : 0
+                }))
+              })().map((item, i) => {
                 const colors = ['bg-primary', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500']
                 return (
                   <div key={i} className="space-y-2">
