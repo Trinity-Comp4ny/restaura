@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Edit, Trash2, Briefcase, Eye, EyeOff, Search, MoreHorizontal, Phone, Mail, Building } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { NavigationBreadcrumb, BackButton } from '@/components/ui/navigation-breadcrumb'
+import { EmptyState } from '@/components/ui/empty-state'
 
 // Mock data - em produção viria do backend
 const mockFornecedores = [
@@ -86,6 +87,7 @@ const categoriasFornecedor = [
 ]
 
 export default function FornecedoresConfigPage() {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [showNewDialog, setShowNewDialog] = useState(false)
@@ -203,29 +205,24 @@ export default function FornecedoresConfigPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-4">
-        <NavigationBreadcrumb
-          items={[
-            { label: 'Financeiro', href: '/configuracoes/financeiro' },
-            { label: 'Fornecedores', href: '/configuracoes/financeiro/fornecedores' }
-          ]}
-          current="/configuracoes/financeiro/fornecedores"
-        />
-        
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Fornecedores</h1>
-            <p className="text-muted-foreground">
-              Cadastre e gerencie seus fornecedores de produtos e serviços
-            </p>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Fornecedores</h1>
+              <p className="text-muted-foreground">
+                Cadastre e gerencie seus fornecedores de produtos e serviços
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={showInactive}
-                onCheckedChange={setShowInactive}
-              />
-              <span className="text-sm">Mostrar inativos</span>
-            </div>
             <Button onClick={handleNewFornecedor}>
               <Plus className="mr-2 h-4 w-4" />
               Novo Fornecedor
@@ -308,8 +305,14 @@ export default function FornecedoresConfigPage() {
       </div>
 
       {/* Lista de Fornecedores */}
-      <div className="grid gap-4">
-        {fornecedoresFiltrados.map((fornecedor) => (
+      {fornecedoresFiltrados.length === 0 ? (
+        <EmptyState
+          type="fornecedores"
+          onAction={handleNewFornecedor}
+        />
+      ) : (
+        <div className="grid gap-4">
+          {fornecedoresFiltrados.map((fornecedor) => (
           <Card key={fornecedor.id}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -424,6 +427,7 @@ export default function FornecedoresConfigPage() {
           </Card>
         ))}
       </div>
+      )}
 
       {/* Dialog Novo/Edit Fornecedor */}
       <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
@@ -556,7 +560,9 @@ export default function FornecedoresConfigPage() {
             </div>
           </div>
           <DialogFooter>
-            <BackButton href="/configuracoes/financeiro/fornecedores" label="Cancelar" />
+            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
+              Cancelar
+            </Button>
             <Button onClick={handleSaveFornecedor}>
               {editingFornecedor ? 'Atualizar' : 'Criar'} Fornecedor
             </Button>

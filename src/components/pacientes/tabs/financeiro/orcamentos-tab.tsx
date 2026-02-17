@@ -13,91 +13,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { useOrcamentosPaciente } from '@/hooks/use-financeiro-paciente'
 
 interface OrcamentosTabProps {
   pacienteId: string
 }
-
-interface ItemOrcamento {
-  id: string
-  procedimento: string
-  dente: string | null
-  quantidade: number
-  valorUnitario: number
-  desconto: number
-  valorFinal: number
-}
-
-interface Orcamento {
-  id: string
-  numero: string
-  data: string
-  validade: string
-  dentista: string
-  status: 'rascunho' | 'enviado' | 'aprovado' | 'recusado' | 'expirado'
-  itens: ItemOrcamento[]
-  valorTotal: number
-  descontoTotal: number
-  valorFinal: number
-  observacoes: string | null
-  condicoesPagamento: string | null
-}
-
-const mockOrcamentos: Orcamento[] = [
-  {
-    id: '1',
-    numero: 'ORC-2024-001',
-    data: '2024-01-10',
-    validade: '2024-02-10',
-    dentista: 'Dr. Ricardo Almeida',
-    status: 'aprovado',
-    itens: [
-      { id: 'i1', procedimento: 'Consulta de Avaliação', dente: null, quantidade: 1, valorUnitario: 150.00, desconto: 0, valorFinal: 150.00 },
-      { id: 'i2', procedimento: 'Tratamento Periodontal', dente: null, quantidade: 4, valorUnitario: 400.00, desconto: 0, valorFinal: 1600.00 },
-      { id: 'i3', procedimento: 'Restauração Classe II', dente: '36', quantidade: 1, valorUnitario: 350.00, desconto: 50.00, valorFinal: 300.00 },
-      { id: 'i4', procedimento: 'Prótese Parcial Removível', dente: null, quantidade: 1, valorUnitario: 2100.00, desconto: 0, valorFinal: 2100.00 },
-    ],
-    valorTotal: 4200.00,
-    descontoTotal: 50.00,
-    valorFinal: 4150.00,
-    observacoes: 'Tratamento completo de reabilitação oral superior',
-    condicoesPagamento: 'Entrada + 8x sem juros no cartão',
-  },
-  {
-    id: '2',
-    numero: 'ORC-2024-005',
-    data: '2024-03-20',
-    validade: '2024-04-20',
-    dentista: 'Dra. Camila Santos',
-    status: 'enviado',
-    itens: [
-      { id: 'i5', procedimento: 'Clareamento a Laser', dente: null, quantidade: 1, valorUnitario: 1200.00, desconto: 200.00, valorFinal: 1000.00 },
-      { id: 'i6', procedimento: 'Lente de Contato Dental', dente: '11-16, 21-26', quantidade: 12, valorUnitario: 1500.00, desconto: 0, valorFinal: 18000.00 },
-    ],
-    valorTotal: 19200.00,
-    descontoTotal: 200.00,
-    valorFinal: 19000.00,
-    observacoes: 'Protocolo estético completo - arcada superior',
-    condicoesPagamento: 'Entrada 30% + 12x',
-  },
-  {
-    id: '3',
-    numero: 'ORC-2024-008',
-    data: '2024-04-01',
-    validade: '2024-05-01',
-    dentista: 'Dr. Ricardo Almeida',
-    status: 'rascunho',
-    itens: [
-      { id: 'i7', procedimento: 'Implante Dentário', dente: '46', quantidade: 1, valorUnitario: 3500.00, desconto: 0, valorFinal: 3500.00 },
-      { id: 'i8', procedimento: 'Coroa sobre Implante', dente: '46', quantidade: 1, valorUnitario: 2000.00, desconto: 0, valorFinal: 2000.00 },
-    ],
-    valorTotal: 5500.00,
-    descontoTotal: 0,
-    valorFinal: 5500.00,
-    observacoes: null,
-    condicoesPagamento: null,
-  },
-]
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
   rascunho: { label: 'Rascunho', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300', icon: FileText },
@@ -108,16 +28,21 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 }
 
 export function OrcamentosTab({ pacienteId }: OrcamentosTabProps) {
+  const { data: orcamentos = [], isLoading } = useOrcamentosPaciente(pacienteId)
   const [expandedOrc, setExpandedOrc] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState('todos')
   const [showNovoOrcamento, setShowNovoOrcamento] = useState(false)
 
-  const filtered = filterStatus === 'todos'
-    ? mockOrcamentos
-    : mockOrcamentos.filter((o) => o.status === filterStatus)
+  if (isLoading) {
+    return <div>Carregando...</div>
+  }
 
-  const totalAprovado = mockOrcamentos.filter((o) => o.status === 'aprovado').reduce((s, o) => s + o.valorFinal, 0)
-  const totalPendente = mockOrcamentos.filter((o) => o.status === 'enviado' || o.status === 'rascunho').reduce((s, o) => s + o.valorFinal, 0)
+  const filtered = filterStatus === 'todos'
+    ? orcamentos
+    : orcamentos.filter((o: any) => o.status === filterStatus)
+
+  const totalAprovado = orcamentos.filter((o: any) => o.status === 'aprovado').reduce((s: number, o: any) => s + (o.valor_total || 0), 0)
+  const totalPendente = orcamentos.filter((o: any) => o.status === 'enviado' || o.status === 'rascunho').reduce((s: number, o: any) => s + (o.valor_total || 0), 0)
 
   return (
     <div className="space-y-4">
@@ -126,7 +51,7 @@ export function OrcamentosTab({ pacienteId }: OrcamentosTabProps) {
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total de Orçamentos</p>
-            <p className="text-2xl font-bold">{mockOrcamentos.length}</p>
+            <p className="text-2xl font-bold">{orcamentos.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -145,8 +70,8 @@ export function OrcamentosTab({ pacienteId }: OrcamentosTabProps) {
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Taxa de Aprovação</p>
             <p className="text-2xl font-bold text-blue-600">
-              {mockOrcamentos.length > 0
-                ? Math.round((mockOrcamentos.filter((o) => o.status === 'aprovado').length / mockOrcamentos.length) * 100)
+              {orcamentos.length > 0
+                ? Math.round((orcamentos.filter((o: any) => o.status === 'aprovado').length / orcamentos.length) * 100)
                 : 0}%
             </p>
           </CardContent>
@@ -176,7 +101,7 @@ export function OrcamentosTab({ pacienteId }: OrcamentosTabProps) {
 
       {/* Lista de Orçamentos */}
       <div className="space-y-4">
-        {filtered.map((orc) => {
+        {filtered.map((orc: any) => {
           const isExpanded = expandedOrc === orc.id
           const config = statusConfig[orc.status]
           const Icon = config.icon
@@ -261,7 +186,7 @@ export function OrcamentosTab({ pacienteId }: OrcamentosTabProps) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {orc.itens.map((item) => (
+                      {orc.itens?.map((item: any) => (
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{item.procedimento}</TableCell>
                           <TableCell>{item.dente || '-'}</TableCell>

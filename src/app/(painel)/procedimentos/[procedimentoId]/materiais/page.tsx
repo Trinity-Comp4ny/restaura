@@ -59,7 +59,7 @@ import {
 
 export default function ProcedimentoMateriaisPage() {
   const params = useParams()
-  const procedimentoId = params.procedimentoId as string
+  const procedimentoId = (params?.procedimentoId as string) || ''
 
   const { data: user } = useUser()
   const { data: procedimento } = useProcedimento(procedimentoId)

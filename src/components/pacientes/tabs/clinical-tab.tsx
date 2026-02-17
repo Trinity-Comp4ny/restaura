@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { useMockPacientes } from '@/lib/api-mock-client'
+import { usePaciente } from '@/hooks/use-pacientes'
 import { formatDate } from '@/lib/utils'
 
 interface ClinicalTabProps {
@@ -18,8 +18,7 @@ interface ClinicalTabProps {
 }
 
 export function ClinicalTab({ pacienteId }: ClinicalTabProps) {
-  const { data: mockData } = useMockPacientes() as { data?: { data: any[] } }
-  const paciente = mockData?.data?.find((p: any) => p.id === pacienteId)
+  const { data: paciente } = usePaciente(pacienteId)
   const [isEditing, setIsEditing] = useState(false)
   const [showAnamneseDialog, setShowAnamneseDialog] = useState(false)
   

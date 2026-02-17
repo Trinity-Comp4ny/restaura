@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { useTransacoesPaciente } from '@/hooks/use-financeiro-paciente'
 
 interface TransacoesTabProps {
   pacienteId: string
@@ -22,117 +23,16 @@ interface Transacao {
   id: string
   data: string
   descricao: string
-  categoria: string
+  categoria?: string
   valor: number
   tipo: 'receita' | 'despesa'
   metodo_pagamento: string
-  status: 'pago' | 'pendente' | 'cancelado' | 'estornado'
+  status: string
   data_vencimento: string
   pago_em: string | null
-  tratamento_nome: string | null
-  observacoes: string | null
+  tratamento?: string
+  observacoes?: string
 }
-
-const mockTransacoes: Transacao[] = [
-  {
-    id: '1',
-    data: '2024-01-15',
-    descricao: 'Consulta de Avaliação',
-    categoria: 'Consulta',
-    valor: 150.00,
-    tipo: 'receita',
-    metodo_pagamento: 'Cartão de crédito',
-    status: 'pago',
-    data_vencimento: '2024-01-15',
-    pago_em: '2024-01-15',
-    tratamento_nome: 'Reabilitação Oral Superior',
-    observacoes: 'Pagamento realizado no ato da consulta',
-  },
-  {
-    id: '2',
-    data: '2024-02-20',
-    descricao: 'Tratamento Periodontal - Sessão 1',
-    categoria: 'Procedimento',
-    valor: 800.00,
-    tipo: 'receita',
-    metodo_pagamento: 'Convênio',
-    status: 'pago',
-    data_vencimento: '2024-02-20',
-    pago_em: '2024-02-20',
-    tratamento_nome: 'Reabilitação Oral Superior',
-    observacoes: 'Autorização convênio: AUT-2024-0456',
-  },
-  {
-    id: '3',
-    data: '2024-03-10',
-    descricao: 'Tratamento Periodontal - Sessão 2',
-    categoria: 'Procedimento',
-    valor: 800.00,
-    tipo: 'receita',
-    metodo_pagamento: 'Convênio',
-    status: 'pago',
-    data_vencimento: '2024-03-10',
-    pago_em: '2024-03-10',
-    tratamento_nome: 'Reabilitação Oral Superior',
-    observacoes: null,
-  },
-  {
-    id: '4',
-    data: '2024-03-25',
-    descricao: 'Clareamento Dental',
-    categoria: 'Estética',
-    valor: 1200.00,
-    tipo: 'receita',
-    metodo_pagamento: 'PIX',
-    status: 'pendente',
-    data_vencimento: '2024-04-10',
-    pago_em: null,
-    tratamento_nome: null,
-    observacoes: 'Paciente solicitou prazo',
-  },
-  {
-    id: '5',
-    data: '2024-04-05',
-    descricao: 'Restauração Dente 36',
-    categoria: 'Procedimento',
-    valor: 350.00,
-    tipo: 'receita',
-    metodo_pagamento: 'Dinheiro',
-    status: 'pendente',
-    data_vencimento: '2024-04-15',
-    pago_em: null,
-    tratamento_nome: 'Reabilitação Oral Superior',
-    observacoes: null,
-  },
-  {
-    id: '6',
-    data: '2024-04-12',
-    descricao: 'Prótese Parcial Removível',
-    categoria: 'Prótese',
-    valor: 2100.00,
-    tipo: 'receita',
-    metodo_pagamento: 'Cartão de crédito',
-    status: 'pendente',
-    data_vencimento: '2024-05-01',
-    pago_em: null,
-    tratamento_nome: 'Reabilitação Oral Superior',
-    observacoes: 'Parcelado em 3x',
-  },
-  {
-    id: '7',
-    data: '2024-01-10',
-    descricao: 'Estorno - Consulta duplicada',
-    categoria: 'Ajuste',
-    valor: 150.00,
-    tipo: 'despesa',
-    metodo_pagamento: 'Cartão de crédito',
-    status: 'estornado',
-    data_vencimento: '2024-01-10',
-    pago_em: '2024-01-12',
-    tratamento_nome: null,
-    observacoes: 'Cobrança duplicada corrigida',
-  },
-]
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
   pago: { label: 'Pago', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', icon: CheckCircle },
@@ -142,13 +42,18 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 }
 
 export function TransacoesTab({ pacienteId }: TransacoesTabProps) {
+  const { data: transacoes = [], isLoading } = useTransacoesPaciente(pacienteId)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('todos')
   const [tipoFilter, setTipoFilter] = useState('todos')
   const [showNewDialog, setShowNewDialog] = useState(false)
-  const [selectedTransacao, setSelectedTransacao] = useState<Transacao | null>(null)
+  const [selectedTransacao, setSelectedTransacao] = useState<any>(null)
 
-  const filtered = mockTransacoes.filter((t) => {
+  if (isLoading) {
+    return <div>Carregando...</div>
+  }
+
+  const filtered = transacoes.filter((t: any) => {
     const matchSearch =
       t.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.categoria.toLowerCase().includes(searchTerm.toLowerCase())
@@ -157,8 +62,8 @@ export function TransacoesTab({ pacienteId }: TransacoesTabProps) {
     return matchSearch && matchStatus && matchTipo
   })
 
-  const totalReceitas = filtered.filter((t) => t.tipo === 'receita' && t.status === 'pago').reduce((s, t) => s + t.valor, 0)
-  const totalPendente = filtered.filter((t) => t.status === 'pendente').reduce((s, t) => s + t.valor, 0)
+  const totalReceitas = filtered.filter((t: any) => t.tipo === 'receita' && t.status === 'pago').reduce((s: number, t: any) => s + (t.valor || 0), 0)
+  const totalPendente = filtered.filter((t: any) => t.status === 'pendente').reduce((s: number, t: any) => s + (t.valor || 0), 0)
 
   return (
     <div className="space-y-4">
@@ -263,7 +168,7 @@ export function TransacoesTab({ pacienteId }: TransacoesTabProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((t) => {
+              {filtered.map((t: any) => {
                 const config = statusConfig[t.status]
                 return (
                   <TableRow key={t.id}>
@@ -271,8 +176,8 @@ export function TransacoesTab({ pacienteId }: TransacoesTabProps) {
                     <TableCell>
                       <div>
                         <p className="font-medium">{t.descricao}</p>
-                        {t.tratamento_nome && (
-                          <p className="text-xs text-muted-foreground">{t.tratamento_nome}</p>
+                        {t.tratamento && (
+                          <p className="text-xs text-muted-foreground">{t.tratamento}</p>
                         )}
                       </div>
                     </TableCell>
@@ -352,7 +257,7 @@ export function TransacoesTab({ pacienteId }: TransacoesTabProps) {
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Categoria</Label>
-                  <p className="font-medium">{selectedTransacao.categoria}</p>
+                  <p className="font-medium">{selectedTransacao.categoria || 'Geral'}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Método</Label>
@@ -367,10 +272,10 @@ export function TransacoesTab({ pacienteId }: TransacoesTabProps) {
                   <p className="font-medium">{selectedTransacao.pago_em ? formatDate(selectedTransacao.pago_em) : 'Não realizado'}</p>
                 </div>
               </div>
-              {selectedTransacao.tratamento_nome && (
+              {selectedTransacao.tratamento && (
                 <div>
                   <Label className="text-muted-foreground">Tratamento</Label>
-                  <p className="font-medium">{selectedTransacao.tratamento_nome}</p>
+                  <p className="font-medium">{selectedTransacao.tratamento}</p>
                 </div>
               )}
               {selectedTransacao.observacoes && (

@@ -218,7 +218,7 @@ export function formatarValor(valor: number): string {
  */
 export function calcularParcelasFuturas(
   transacoes: TransacaoParcelada[],
-  mesAnoAtual: string
+  _mesAnoAtual: string
 ): number {
   return transacoes
     .filter(t => t.status === 'ativa')

@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency } from '@/lib/utils'
-import { useMockSelects } from '@/lib/api-mock-client'
+import { useProcedimentos } from '@/hooks/use-procedimentos'
+import { useLead } from '@/hooks/use-leads'
+import { useUser } from '@/hooks/use-user'
 
 const leadEditSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -49,14 +51,14 @@ const statusOptions = [
 interface Lead {
   id: string
   nome: string
-  email: string
-  telefone: string
+  email?: string
+  telefone?: string
   source: string
+  value?: number
+  observacoes?: string
   status: string
-  value: number
-  createdAt: string
-  lastContact: string
-  observacoes: string
+  createdAt?: string
+  lastContact?: string
 }
 
 const mockLeads: Lead[] = [
@@ -80,19 +82,17 @@ const mockLeads: Lead[] = [
     source: 'Indicação',
     status: 'em_contato',
     value: 800,
-    createdAt: '2024-01-14',
-    lastContact: '2024-01-15',
-    observacoes: 'Buscando ortodontia',
+    observacoes: 'Interessada em tratamento ortodôntico',
   },
 ]
 
-export default function EditarLeadPage() {
+export default function EditLeadPage() {
   const router = useRouter()
   const params = useParams()
-  const leadId = params.leadId as string
-  const { data: procedimentosData } = useMockSelects('procedimentos') as { data?: any[] }
-
-  const lead = mockLeads.find(l => l.id === leadId)
+  const leadId = (params?.leadId as string) || ''
+  const { data: user } = useUser()
+  const { data: procedimentosData } = useProcedimentos()
+  const { data: lead, isLoading } = useLead(leadId, user?.clinica_id)
 
   const {
     register,
@@ -106,7 +106,7 @@ export default function EditarLeadPage() {
       telefone: lead.telefone,
       source: lead.source,
       status: lead.status,
-      value: lead.value.toString(),
+      value: lead.value?.toString() || '',
       observacoes: lead.observacoes,
     } : undefined,
   })

@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Plus, Edit, Trash2, Building2, Wallet, Eye, EyeOff, Search, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, Plus, Edit, Trash2, Loader2, Search, Building2, Wallet } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,58 +12,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { NavigationBreadcrumb, BackButton } from '@/components/ui/navigation-breadcrumb'
-
-// Mock data - em produção viria do backend
-const mockContas = [
-  {
-    id: '1',
-    nome: 'Banco Inter PJ - Conta Principal',
-    banco: 'Banco Inter',
-    agencia: '0001',
-    conta: '12345678-9',
-    tipo: 'conta_corrente',
-    saldo: 28460.00,
-    isPadrao: true,
-    ativa: true
-  },
-  {
-    id: '2',
-    nome: 'Itaú Unibanco - Conta Secundária',
-    banco: 'Itaú Unibanco',
-    agencia: '1234-5',
-    conta: '98765-4',
-    tipo: 'conta_corrente',
-    saldo: 8500.00,
-    isPadrao: false,
-    ativa: true
-  },
-  {
-    id: '3',
-    nome: 'Caixa Físico - Principal',
-    banco: '',
-    agencia: '',
-    conta: '',
-    tipo: 'caixa_fisico',
-    saldo: 1250.00,
-    isPadrao: false,
-    ativa: true
-  },
-  {
-    id: '4',
-    nome: 'Bradesco PJ - Conta Investimento',
-    banco: 'Banco Bradesco',
-    agencia: '3456-8',
-    conta: '234567-1',
-    tipo: 'poupanca',
-    saldo: 45000.00,
-    isPadrao: false,
-    ativa: true
-  }
-]
+import { useContasBancarias, useCreateContaBancaria, useUpdateContaBancaria, useDeleteContaBancaria } from '@/hooks/use-contas-bancarias'
+import { useUser } from '@/hooks/use-user'
+import { EmptyState } from '@/components/ui/empty-state'
 
 const tiposConta = [
   { value: 'conta_corrente', label: 'Conta Corrente', description: 'Para transações diárias' },
@@ -71,10 +27,17 @@ const tiposConta = [
 ]
 
 export default function ContasConfigPage() {
+  const { data: user } = useUser()
+  const { data: contas = [], isLoading } = useContasBancarias()
+  const router = useRouter()
+  const createConta = useCreateContaBancaria()
+  const updateConta = useUpdateContaBancaria()
+  const deleteConta = useDeleteContaBancaria()
+  
   const [searchTerm, setSearchTerm] = useState('')
-  const [showInactive, setShowInactive] = useState(false)
   const [showNewDialog, setShowNewDialog] = useState(false)
   const [editingConta, setEditingConta] = useState<any>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [novaConta, setNovaConta] = useState({
     nome: '',
     banco: '',
@@ -82,14 +45,15 @@ export default function ContasConfigPage() {
     conta: '',
     tipo: 'conta_corrente',
     saldo: 0,
-    isPadrao: false
+    is_padrao: false,
+    clinica_id: user?.clinica_id || ''
   })
 
-  const contasFiltradas = mockContas.filter(c => 
-    showInactive || c.ativa
-  ).filter(c =>
+  const contasFiltradas = contas.filter((c: any) => 
+    c.ativa
+  ).filter((c: any) =>
     c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.banco.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.banco && c.banco.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const handleNewConta = () => {
@@ -101,7 +65,8 @@ export default function ContasConfigPage() {
       conta: '',
       tipo: 'conta_corrente',
       saldo: 0,
-      isPadrao: false
+      is_padrao: false,
+      clinica_id: user?.clinica_id || ''
     })
     setShowNewDialog(true)
   }
@@ -115,14 +80,27 @@ export default function ContasConfigPage() {
       conta: conta.conta,
       tipo: conta.tipo,
       saldo: conta.saldo,
-      isPadrao: conta.isPadrao
+      is_padrao: conta.is_padrao,
+      clinica_id: conta.clinica_id
     })
     setShowNewDialog(true)
   }
 
   const handleSaveConta = () => {
-    // Em produção, salvar no backend
-    console.log('Salvando conta:', novaConta)
+    const contaData = {
+      ...novaConta,
+      tipo: novaConta.tipo as 'conta_corrente' | 'conta_poupanca' | 'caixa_fisico',
+      ativa: true
+    }
+    
+    if (editingConta) {
+      updateConta.mutate({
+        id: editingConta.id,
+        ...contaData
+      } as any)
+    } else {
+      createConta.mutate(contaData as any)
+    }
     setShowNewDialog(false)
     setNovaConta({
       nome: '',
@@ -131,23 +109,14 @@ export default function ContasConfigPage() {
       conta: '',
       tipo: 'conta_corrente',
       saldo: 0,
-      isPadrao: false
+      is_padrao: false,
+      clinica_id: user?.clinica_id || ''
     })
   }
 
-  const handleToggleAtivo = (id: string) => {
-    // Em produção, atualizar no backend
-    console.log('Toggle ativo:', id)
-  }
-
   const handleDeleteConta = (id: string) => {
-    // Em produção, deletar no backend
-    console.log('Delete conta:', id)
-  }
-
-  const handleDefinirPadrao = (id: string) => {
-    // Em produção, atualizar no backend
-    console.log('Definir como padrão:', id)
+    deleteConta.mutate(id)
+    setConfirmDeleteId(null)
   }
 
   const getIconByTipo = (tipo: string) => {
@@ -172,30 +141,25 @@ export default function ContasConfigPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-4">
-        <NavigationBreadcrumb
-          items={[
-            { label: 'Financeiro', href: '/configuracoes/financeiro' },
-            { label: 'Contas', href: '/configuracoes/financeiro/contas' }
-          ]}
-          current="/configuracoes/financeiro/contas"
-        />
-        
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Contas Bancárias</h1>
-            <p className="text-muted-foreground">
-              Gerencie suas contas bancárias e caixa físico
-            </p>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Contas Bancárias</h1>
+              <p className="text-muted-foreground">
+                Gerencie suas contas bancárias e caixa físico
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={showInactive}
-                onCheckedChange={setShowInactive}
-              />
-              <span className="text-sm">Mostrar inativas</span>
-            </div>
-            <Button onClick={handleNewConta}>
+            <Button onClick={handleNewConta} data-onboarding="nova-conta">
               <Plus className="mr-2 h-4 w-4" />
               Nova Conta
             </Button>
@@ -237,7 +201,7 @@ export default function ContasConfigPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Conta Padrão</p>
                 <p className="text-2xl font-bold">
-                  {contasFiltradas.find(c => c.isPadrao)?.nome || 'Não definida'}
+                  {contasFiltradas.find(c => c.is_padrao)?.nome || 'Não definida'}
                 </p>
               </div>
               <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -277,8 +241,17 @@ export default function ContasConfigPage() {
       </div>
 
       {/* Lista de Contas */}
-      <div className="grid gap-4">
-        {contasFiltradas.map((conta) => (
+      {contasFiltradas.length === 0 ? (
+        <EmptyState
+          type="cartoes"
+          title="Nenhuma conta bancária cadastrada"
+          description="Cadastre contas bancárias para organizar suas finanças"
+          buttonText="Nova Conta"
+          onAction={handleNewConta}
+        />
+      ) : (
+        <div className="grid gap-4">
+          {contasFiltradas.map((conta) => (
           <Card key={conta.id}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -292,7 +265,7 @@ export default function ContasConfigPage() {
                       <Badge variant="outline" className="text-xs">
                         {tiposConta.find(t => t.value === conta.tipo)?.label || conta.tipo}
                       </Badge>
-                      {conta.isPadrao && (
+                      {conta.is_padrao && (
                         <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
                           <span className="text-xs font-bold">★</span>
                           Padrão
@@ -318,62 +291,21 @@ export default function ContasConfigPage() {
                   <Button variant="ghost" size="sm" onClick={() => handleEditConta(conta)}>
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleToggleAtivo(conta.id)}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                    onClick={() => setConfirmDeleteId(conta.id)}
                   >
-                    {conta.ativa ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEditConta(conta)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleToggleAtivo(conta.id)}>
-                        {conta.ativa ? (
-                          <>
-                            <EyeOff className="mr-2 h-4 w-4" />
-                            Desativar
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ativar
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleDefinirPadrao(conta.id)}>
-                        <span className="mr-2 h-4 w-4">★</span>
-                        {conta.isPadrao ? 'Remover Padrão' : 'Definir como Padrão'}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => handleDeleteConta(conta.id)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+      )}
 
       {/* Dialog Nova/Edit Conta */}
       <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
@@ -471,20 +403,43 @@ export default function ContasConfigPage() {
                   </p>
                 </div>
                 <Switch
-                  checked={novaConta.isPadrao}
-                  onCheckedChange={(checked) => setNovaConta({ ...novaConta, isPadrao: checked })}
+                  checked={novaConta.is_padrao}
+                  onCheckedChange={(checked) => setNovaConta({ ...novaConta, is_padrao: checked })}
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <BackButton href="/configuracoes/financeiro/contas" label="Cancelar" />
+            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
+              Cancelar
+            </Button>
             <Button onClick={handleSaveConta}>
               {editingConta ? 'Atualizar' : 'Criar'} Conta
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmar exclusão de conta */}
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir conta bancária?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. A conta será desativada e não aparecerá mais nas listas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmDeleteId(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => confirmDeleteId && handleDeleteConta(confirmDeleteId)}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,12 +1,12 @@
 'use client'
 
-import { Phone, MessageSquare, CheckCircle, Clock, User, ChevronDown, MoreVertical } from 'lucide-react'
+import { Phone, MessageSquare, CheckCircle, Clock, User, ChevronDown, MoreVertical, CalendarPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { APPOINTMENT_STATUS_CONFIG, APPOINTMENT_STATUS, APPOINTMENT_STATUS_FLOW } from '@/constants/appointment-status'
-import { NextAppointment } from '../hooks/use-home-data'
+import { NextAppointment } from '@/hooks/use-home-data-real'
 import { getInitials } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -47,8 +47,25 @@ export function NextAppointments({ appointments }: NextAppointmentsProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {appointments.map((appointment: NextAppointment) => {
+        {appointments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/50 mb-4">
+              <CalendarPlus className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Nenhuma consulta agendada
+            </h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              Você não tem consultas agendadas para hoje. Agende uma nova consulta para começar.
+            </p>
+            <Button disabled className="gap-2 opacity-60 cursor-not-allowed">
+              <CalendarPlus className="h-4 w-4" />
+              Agendar Nova Consulta
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {appointments.map((appointment: NextAppointment) => {
             const status = APPOINTMENT_STATUS_CONFIG[appointment.status]
             
             return (
@@ -158,6 +175,7 @@ export function NextAppointments({ appointments }: NextAppointmentsProps) {
             )
           })}
         </div>
+        )}
       </CardContent>
     </Card>
   )

@@ -12,7 +12,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { usePaciente } from '@/hooks/use-pacientes'
 import { useHistoricoPaciente } from '@/hooks/use-consultas'
 import { getInitials, formatPhone, formatDate, formatTime } from '@/lib/utils'
-import { useMockPacientes } from '@/lib/api-mock-client'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/constants'
 import type { Database } from '@/types/database.types'
 
@@ -21,12 +20,9 @@ type Paciente = Database['public']['Tables']['pacientes']['Row']
 export default function PacientePerfilPage() {
   const params = useParams()
   const router = useRouter()
-  const pacienteId = params.pacienteId as string
+  const pacienteId = (params?.pacienteId as string) || ''
 
-  // Em desenvolvimento, usa dados mock via API
-  const { data: mockData } = useMockPacientes() as { data?: { data: any[] } }
-  const paciente = mockData?.data?.find((p: any) => p.id === pacienteId)
-  const isLoading = false
+  const { data: paciente, isLoading } = usePaciente(pacienteId)
   
   // Buscar histórico de consultas
   const { data: historico, isLoading: isLoadingHistorico } = useHistoricoPaciente(pacienteId)

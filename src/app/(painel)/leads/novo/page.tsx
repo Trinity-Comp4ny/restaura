@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useUser } from '@/hooks/use-user'
 import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
-import { useMockSelects } from '@/lib/api-mock-client'
+import { useProcedimentos } from '@/hooks/use-procedimentos'
 
 const leadSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -40,7 +40,7 @@ const origens = [
 
 export default function NovoLeadPage() {
   const router = useRouter()
-  const { data: procedimentosData } = useMockSelects('procedimentos') as { data?: any[] }
+  const { data: procedimentosData } = useProcedimentos()
   const { data: user } = useUser()
 
   const {

@@ -3,9 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -15,32 +12,20 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase/client'
 
-const loginSchema = z.object({
-  email: z.string().email('E-mail inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
-})
-
-type LoginFormData = z.infer<typeof loginSchema>
-
 export default function LoginPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-  })
-
-  async function onSubmit(data: LoginFormData) {
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
     setIsLoading(true)
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
+        email,
+        password,
       })
 
       if (error) {
@@ -85,7 +70,7 @@ export default function LoginPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-5 pt-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-slate-200">E-mail</Label>
               <Input
@@ -94,13 +79,10 @@ export default function LoginPage() {
                 placeholder="seu@email.com"
                 autoComplete="email"
                 disabled={isLoading}
-                error={!!errors.email}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-slate-900/50 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-blue-500"
-                {...register('email')}
               />
-              {errors.email && (
-                <p className="text-sm text-rose-400">{errors.email.message}</p>
-              )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -119,9 +101,9 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   autoComplete="current-password"
                   disabled={isLoading}
-                  error={!!errors.password}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="bg-slate-900/50 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-blue-500 pr-10"
-                  {...register('password')}
                 />
                 <button
                   type="button"
@@ -133,25 +115,22 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-rose-400">{errors.password.message}</p>
-              )}
             </div>
             <Button
               type="submit"
               className="w-full h-12 rounded-full bg-blue-500 hover:bg-blue-600 border-none text-white shadow-lg shadow-blue-500/20 font-medium"
-              isLoading={isLoading}
+              disabled={isLoading}
             >
-              Entrar
+              {isLoading ? 'Carregando...' : 'Entrar'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-3 pt-6 border-t border-white/10">
           <p className="text-sm text-slate-400">
-            Não tem uma conta?{' '}
-            <Link href="/cadastrar" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
-              Criar conta
-            </Link>
+            Acesso disponível apenas por convite.{' '}
+            <span className="font-medium text-blue-400">
+              Contate nossa equipe
+            </span>
           </p>
         </CardFooter>
       </Card>

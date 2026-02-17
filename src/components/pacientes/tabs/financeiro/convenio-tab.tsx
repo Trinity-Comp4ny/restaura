@@ -11,45 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { usePaciente } from '@/hooks/use-pacientes'
 
 interface ConvenioTabProps {
   pacienteId: string
-}
-
-const mockConvenio = {
-  ativo: true,
-  nome: 'Unimed',
-  plano: 'Dental Premium',
-  numero_carteira: '0012345678-9',
-  titular: 'Maria da Silva',
-  parentesco: 'Titular',
-  validade: '2025-12-31',
-  cobertura_percentual: 80,
-  limite_mensal: 500.00,
-  limite_utilizado: 320.00,
-  limite_anual: 6000.00,
-  limite_anual_utilizado: 2800.00,
-  carencia_restante: null,
-  procedimentos_cobertos: [
-    { procedimento: 'Consulta de Avaliação', cobertura: 100, limite: null, observacao: null },
-    { procedimento: 'Limpeza / Profilaxia', cobertura: 100, limite: '2x por ano', observacao: null },
-    { procedimento: 'Restauração Classe I/II', cobertura: 80, limite: null, observacao: 'Amálgama ou resina' },
-    { procedimento: 'Tratamento Periodontal', cobertura: 70, limite: '4 sessões/ano', observacao: 'Necessita autorização prévia' },
-    { procedimento: 'Exodontia Simples', cobertura: 100, limite: null, observacao: null },
-    { procedimento: 'Radiografia Periapical', cobertura: 100, limite: '8x por ano', observacao: null },
-    { procedimento: 'Radiografia Panorâmica', cobertura: 100, limite: '1x por ano', observacao: null },
-    { procedimento: 'Endodontia (Canal)', cobertura: 60, limite: null, observacao: 'Autorização prévia obrigatória' },
-    { procedimento: 'Prótese Fixa', cobertura: 0, limite: null, observacao: 'Não coberto neste plano' },
-    { procedimento: 'Implante', cobertura: 0, limite: null, observacao: 'Não coberto neste plano' },
-    { procedimento: 'Clareamento', cobertura: 0, limite: null, observacao: 'Procedimento estético - não coberto' },
-    { procedimento: 'Ortodontia', cobertura: 50, limite: 'Até R$ 2.000/ano', observacao: 'Apenas aparelho fixo metálico' },
-  ],
-  historico_autorizacoes: [
-    { id: '1', data: '2024-01-15', procedimento: 'Consulta de Avaliação', codigo: 'AUT-2024-0123', status: 'aprovada', valor_autorizado: 150.00 },
-    { id: '2', data: '2024-02-10', procedimento: 'Tratamento Periodontal (4 sessões)', codigo: 'AUT-2024-0456', status: 'aprovada', valor_autorizado: 1120.00 },
-    { id: '3', data: '2024-03-20', procedimento: 'Endodontia Dente 36', codigo: 'AUT-2024-0789', status: 'em_analise', valor_autorizado: null },
-    { id: '4', data: '2024-04-01', procedimento: 'Prótese Parcial Removível', codigo: 'AUT-2024-0901', status: 'negada', valor_autorizado: null },
-  ],
 }
 
 const statusAutConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
@@ -59,14 +24,20 @@ const statusAutConfig: Record<string, { label: string; color: string; icon: type
 }
 
 export function ConvenioTab({ pacienteId }: ConvenioTabProps) {
+  const { data: paciente, isLoading } = usePaciente(pacienteId)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showNovaAutorizacao, setShowNovaAutorizacao] = useState(false)
   const [editConvenio, setEditConvenio] = useState('unimed')
   const [editParentesco, setEditParentesco] = useState('titular')
-  const data = mockConvenio
 
-  const limMensalPercent = (data.limite_utilizado / data.limite_mensal) * 100
-  const limAnualPercent = (data.limite_anual_utilizado / data.limite_anual) * 100
+  if (isLoading) {
+    return <div>Carregando...</div>
+  }
+
+  const data = paciente?.convenio ? (paciente.convenio as any) : null
+
+  const limMensalPercent = data ? (data.limite_utilizado / data.limite_mensal) * 100 : 0
+  const limAnualPercent = data ? (data.limite_anual_utilizado / data.limite_anual) * 100 : 0
   const limMensalCritico = limMensalPercent > 80
   const limAnualCritico = limAnualPercent > 80
 
@@ -193,7 +164,7 @@ export function ConvenioTab({ pacienteId }: ConvenioTabProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.procedimentos_cobertos.map((proc, i) => (
+              {data.procedimentos_cobertos?.map((proc: any, i: number) => (
                 <TableRow key={i}>
                   <TableCell className="font-medium">{proc.procedimento}</TableCell>
                   <TableCell className="text-center">
@@ -243,7 +214,7 @@ export function ConvenioTab({ pacienteId }: ConvenioTabProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.historico_autorizacoes.map((aut) => {
+              {data.historico_autorizacoes?.map((aut: any) => {
                 const config = statusAutConfig[aut.status]
                 const Icon = config.icon
                 return (
@@ -363,8 +334,8 @@ export function ConvenioTab({ pacienteId }: ConvenioTabProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {data.procedimentos_cobertos
-                    .filter((p) => p.cobertura > 0)
-                    .map((p, i) => (
+                    ?.filter((p: any) => p.cobertura > 0)
+                    .map((p: any, i: number) => (
                       <SelectItem key={i} value={String(i)}>{p.procedimento}</SelectItem>
                     ))}
                 </SelectContent>

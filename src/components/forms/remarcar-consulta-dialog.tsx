@@ -27,6 +27,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useUpdateConsulta } from '@/hooks/use-consultas'
 import { toast } from 'sonner'
+import { getLocalISODate } from '@/lib/utils'
 
 const remarcarConsultaSchema = z.object({
   date: z.string().min(1, 'Data é obrigatória'),
@@ -157,7 +158,7 @@ export function RemarcarConsultaDialog({
                 id="date"
                 type="date"
                 {...register('date')}
-                min={new Date().toISOString().split('T')[0]}
+                min={getLocalISODate()}
               />
               {errors.date && (
                 <p className="text-sm text-destructive">{errors.date.message}</p>

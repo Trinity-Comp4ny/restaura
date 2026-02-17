@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 export default function ConsultaRedirectPage() {
   const params = useParams()
   const router = useRouter()
-  const consultaId = params.id as string
+  const consultaId = (params?.id as string) || ''
 
   useEffect(() => {
     router.replace(`/agenda/${consultaId}`)
