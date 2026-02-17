@@ -1,342 +1,410 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
-  TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownRight,
-  Calendar, AlertTriangle, CheckCircle, Clock, Eye
+  TrendingUp, DollarSign, ArrowUpRight, ArrowDownRight,
+  BarChart3
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatDate, formatCurrency } from '@/lib/utils'
+import { formatDate, formatCurrency, getLocalISODate } from '@/lib/utils'
+import { useUser } from '@/hooks/use-user'
+import {
+  useFluxoCaixaResumo,
+  useFluxoCaixaDiario,
+  useContasPagar,
+  useContasReceber,
+  useProjecaoSemanal,
+  useFluxoCaixaMensal,
+  useFluxoCaixaAnual
+} from '@/hooks/use-fluxo-caixa'
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ReferenceLine, Legend
+} from 'recharts'
 
 interface FluxoCaixaTabProps {
   periodo: string
+  customRange?: { startDate: string; endDate: string }
 }
 
-const mockFluxoResumo = {
-  saldoAtual: 28460,
-  projecaoSemana: -2400,
-  variacaoSaldo: -8.2,
-  contasReceberSemana: 18200,
-  contasPagarSemana: 15800,
+type Visao = 'diario' | 'semanal' | 'mensal' | 'anual'
+
+const VISAO_LABELS: Record<Visao, string> = {
+  diario: 'Diário',
+  semanal: 'Semanal',
+  mensal: 'Mensal',
+  anual: 'Anual',
 }
 
-const mockFluxoAlertas: { titulo: string; descricao: string; risco: 'alto' | 'medio' | 'baixo' }[] = [
-  { titulo: 'Semana 1 Fev', descricao: 'Saldo previsto -R$ 2.400', risco: 'alto' },
-  { titulo: 'Contas a pagar', descricao: 'R$ 15.800 vencem em 7 dias', risco: 'medio' },
-]
+function getPeriodoRange(periodo: string, customRange?: { startDate: string; endDate: string }) {
+  const hoje = new Date()
+  let inicio = new Date(hoje)
+  let fim = new Date(hoje)
 
-const mockFluxoDiario = [
-  { data: '2024-01-15', entradas: 4850.00, saidas: 890.00, saldo: 3960.00, saldoAcumulado: 28460.00 },
-  { data: '2024-01-14', entradas: 1550.00, saidas: 4500.00, saldo: -2950.00, saldoAcumulado: 24500.00 },
-  { data: '2024-01-13', entradas: 2800.00, saidas: 280.00, saldo: 2520.00, saldoAcumulado: 27450.00 },
-  { data: '2024-01-12', entradas: 3200.00, saidas: 2200.00, saldo: 1000.00, saldoAcumulado: 24930.00 },
-  { data: '2024-01-11', entradas: 950.00, saidas: 680.00, saldo: 270.00, saldoAcumulado: 23930.00 },
-  { data: '2024-01-10', entradas: 2100.00, saidas: 1499.00, saldo: 601.00, saldoAcumulado: 23660.00 },
-  { data: '2024-01-09', entradas: 1800.00, saidas: 450.00, saldo: 1350.00, saldoAcumulado: 23059.00 },
-  { data: '2024-01-08', entradas: 600.00, saidas: 299.00, saldo: 301.00, saldoAcumulado: 21709.00 },
-  { data: '2024-01-07', entradas: 0.00, saidas: 185.00, saldo: -185.00, saldoAcumulado: 21408.00 },
-  { data: '2024-01-05', entradas: 4500.00, saidas: 950.00, saldo: 3550.00, saldoAcumulado: 21593.00 },
-]
+  switch (periodo) {
+    case 'hoje':
+      break
+    case 'semana_atual': {
+      const day = inicio.getDay()
+      const diff = day === 0 ? 6 : day - 1
+      inicio.setDate(inicio.getDate() - diff)
+      fim = new Date(inicio)
+      fim.setDate(inicio.getDate() + 6)
+      break
+    }
+    case 'mes_atual': {
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+      fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
+      break
+    }
+    case 'mes_anterior': {
+      const ano = hoje.getMonth() === 0 ? hoje.getFullYear() - 1 : hoje.getFullYear()
+      const mes = hoje.getMonth() === 0 ? 11 : hoje.getMonth() - 1
+      inicio = new Date(ano, mes, 1)
+      fim = new Date(ano, mes + 1, 0)
+      break
+    }
+    case 'ano': {
+      inicio = new Date(hoje.getFullYear(), 0, 1)
+      fim = new Date(hoje.getFullYear(), 11, 31)
+      break
+    }
+    case 'personalizado': {
+      if (customRange?.startDate && customRange?.endDate) {
+        inicio = new Date(customRange.startDate + 'T00:00:00')
+        fim = new Date(customRange.endDate + 'T00:00:00')
+      }
+      break
+    }
+    default:
+      // fallback
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+      fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
+      break
+  }
 
-const mockFluxoMensal = [
-  { periodo: 'Jul/24', entradas: 42000.00, saidas: 18000.00, saldo: 24000.00 },
-  { periodo: 'Ago/24', entradas: 48000.00, saidas: 19500.00, saldo: 28500.00 },
-  { periodo: 'Set/24', entradas: 51000.00, saidas: 20000.00, saldo: 31000.00 },
-  { periodo: 'Out/24', entradas: 55000.00, saidas: 21000.00, saldo: 34000.00 },
-  { periodo: 'Nov/24', entradas: 59900.00, saidas: 23100.00, saldo: 36800.00 },
-  { periodo: 'Dez/24', entradas: 68450.00, saidas: 22180.00, saldo: 46270.00 },
-]
+  return {
+    inicio: getLocalISODate(inicio),
+    fim: getLocalISODate(fim)
+  }
+}
 
-const mockFluxoAnual = [
-  { periodo: '2022', entradas: 410000.00, saidas: 255000.00, saldo: 155000.00 },
-  { periodo: '2023', entradas: 520000.00, saidas: 315000.00, saldo: 205000.00 },
-  { periodo: '2024', entradas: 582000.00, saidas: 332000.00, saldo: 250000.00 },
-]
+function getSmartDefaultVisao(periodo: string): Visao {
+  switch (periodo) {
+    case 'hoje': return 'diario'
+    case 'semana_atual': return 'diario'
+    case 'mes_atual': return 'diario'
+    case 'mes_anterior': return 'diario'
+    case 'ano': return 'mensal'
+    case 'personalizado': return 'diario'
+    default: return 'diario'
+  }
+}
 
-const mockProjecao = [
-  { semana: 'Sem 3 (15-21 Jan)', entradasPrevistas: 8200.00, saidasPrevistas: 3500.00, saldoPrevisto: 4700.00 },
-  { semana: 'Sem 4 (22-28 Jan)', entradasPrevistas: 7800.00, saidasPrevistas: 5200.00, saldoPrevisto: 2600.00 },
-  { semana: 'Sem 1 Fev (29-04)', entradasPrevistas: 6500.00, saidasPrevistas: 8900.00, saldoPrevisto: -2400.00 },
-  { semana: 'Sem 2 Fev (05-11)', entradasPrevistas: 9100.00, saidasPrevistas: 4100.00, saldoPrevisto: 5000.00 },
-]
+function getAvailableVisoes(periodo: string): { value: Visao; label: string }[] {
+  switch (periodo) {
+    case 'hoje':
+      return [{ value: 'diario', label: 'Diário' }]
+    case 'semana_atual':
+      return [
+        { value: 'diario', label: 'Diário' },
+        { value: 'semanal', label: 'Semanal' },
+      ]
+    case 'mes_atual':
+    case 'mes_anterior':
+      return [
+        { value: 'diario', label: 'Diário' },
+        { value: 'mensal', label: 'Mensal' },
+      ]
+    case 'ano':
+      return [
+        { value: 'mensal', label: 'Mensal' },
+        { value: 'anual', label: 'Anual' },
+      ]
+    case 'personalizado':
+      return [
+        { value: 'diario', label: 'Diário' },
+        { value: 'mensal', label: 'Mensal' },
+      ]
+    default:
+      return [{ value: 'diario', label: 'Diário' }]
+  }
+}
 
-const mockContasAPagar = [
-  { id: '1', descricao: 'Aluguel - Fevereiro', valor: 4500.00, vencimento: '2024-02-10', categoria: 'Infraestrutura', status: 'a_vencer' },
-  { id: '2', descricao: 'Salário - Recepcionista', valor: 2800.00, vencimento: '2024-02-05', categoria: 'Pessoal', status: 'a_vencer' },
-  { id: '3', descricao: 'Salário - Auxiliar', valor: 2200.00, vencimento: '2024-02-05', categoria: 'Pessoal', status: 'a_vencer' },
-  { id: '4', descricao: 'Contador - Honorários', valor: 950.00, vencimento: '2024-02-05', categoria: 'Serviços', status: 'a_vencer' },
-  { id: '5', descricao: 'Manutenção Autoclave', valor: 450.00, vencimento: '2024-01-25', categoria: 'Equipamentos', status: 'proximo' },
-]
+const visaoTitulos: Record<Visao, { titulo: string; descricao: string }> = {
+  diario: { titulo: 'Fluxo de Caixa Diário', descricao: 'Entradas e saídas por dia' },
+  semanal: { titulo: 'Fluxo de Caixa Semanal', descricao: 'Entradas e saídas por semana' },
+  mensal: { titulo: 'Fluxo de Caixa Mensal', descricao: 'Entradas e saídas consolidadas por mês' },
+  anual: { titulo: 'Fluxo de Caixa Anual', descricao: 'Visão macro por ano fiscal' },
+}
 
-const mockContasAReceber = [
-  { id: '1', descricao: 'Implante - Maria Silva (2/3)', valor: 3500.00, vencimento: '2024-02-15', paciente: 'Maria Silva', status: 'a_vencer' },
-  { id: '2', descricao: 'Prótese - Lucia Ferreira (2/4)', valor: 2800.00, vencimento: '2024-02-13', paciente: 'Lucia Ferreira', status: 'a_vencer' },
-  { id: '3', descricao: 'Canal - Fernanda Souza', valor: 800.00, vencimento: '2024-01-25', paciente: 'Fernanda Souza', status: 'proximo' },
-  { id: '4', descricao: 'Ortodontia - Carlos Santos', valor: 150.00, vencimento: '2024-02-15', paciente: 'Carlos Santos', status: 'a_vencer' },
-]
+const getVisaoLabel = (visao: Visao) => VISAO_LABELS[visao] || visao
 
-const visaoConfigs = {
-  diario: {
-    titulo: 'Fluxo de Caixa Diário',
-    descricao: 'Entradas e saídas por dia',
-    data: mockFluxoDiario.map((item) => ({
-      label: formatDate(item.data),
-      entradas: item.entradas,
-      saidas: item.saidas,
-      saldo: item.saldo,
-    })),
-  },
-  semanal: {
-    titulo: 'Fluxo de Caixa Semanal',
-    descricao: 'Projeção das próximas semanas',
-    data: mockProjecao.map((item) => ({
-      label: item.semana,
-      entradas: item.entradasPrevistas,
-      saidas: item.saidasPrevistas,
-      saldo: item.saldoPrevisto,
-    })),
-  },
-  mensal: {
-    titulo: 'Fluxo de Caixa Mensal',
-    descricao: 'Entradas e saídas consolidadas por mês',
-    data: mockFluxoMensal.map((item) => ({
-      label: item.periodo,
-      entradas: item.entradas,
-      saidas: item.saidas,
-      saldo: item.saldo,
-    })),
-  },
-  anual: {
-    titulo: 'Fluxo de Caixa Anual',
-    descricao: 'Visão macro por ano fiscal',
-    data: mockFluxoAnual.map((item) => ({
-      label: item.periodo,
-      entradas: item.entradas,
-      saidas: item.saidas,
-      saldo: item.saldo,
-    })),
-  },
-} as const
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null
 
-export function FluxoCaixaTab({ periodo }: FluxoCaixaTabProps) {
-  const [visao, setVisao] = useState<keyof typeof visaoConfigs>('diario')
-  const [mostrarInsights, setMostrarInsights] = useState(true)
-
-  const saldoAtual = mockFluxoDiario[0].saldoAcumulado
-  const totalEntradas = mockFluxoDiario.reduce((s, d) => s + d.entradas, 0)
-  const totalSaidas = mockFluxoDiario.reduce((s, d) => s + d.saidas, 0)
-  const totalAPagar = mockContasAPagar.reduce((s, c) => s + c.valor, 0)
-  const totalAReceber = mockContasAReceber.reduce((s, c) => s + c.valor, 0)
-  const visaoAtual = visaoConfigs[visao]
-  const maxVal = Math.max(
-    ...visaoAtual.data.map((d) => Math.max(d.entradas, d.saidas)),
-    1
+  const values = (payload as any[]).reduce(
+    (acc, entry) => {
+      acc[entry.dataKey] = entry.value
+      return acc
+    },
+    {} as Record<string, number>
   )
+
+  const entradas = (values.entradasPagas || 0) + (values.entradasPrev || 0)
+  const saidas = (values.saidasPagas || 0) + (values.saidasPrev || 0)
+  const saldo = entradas - saidas
+
+  return (
+    <div className="rounded-lg border bg-background p-3 shadow-md text-sm">
+      <p className="font-medium mb-1.5">{label}</p>
+      {payload.map((entry: any, i: number) => (
+        <div key={i} className="flex items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-muted-foreground">{entry.name}:</span>
+          <span className="font-medium">{formatCurrency(entry.value)}</span>
+        </div>
+      ))}
+      {payload.length >= 2 && (
+        <div className="mt-1.5 pt-1.5 border-t flex items-center gap-2">
+          <span className="text-muted-foreground">Saldo:</span>
+          <span className={`font-semibold ${saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatCurrency(saldo)}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function FluxoCaixaTab({ periodo, customRange }: FluxoCaixaTabProps) {
+  const { data: user } = useUser()
+  const clinicaId = user?.clinica_id || ''
+
+  const smartDefault = useMemo(() => getSmartDefaultVisao(periodo), [periodo])
+  const [visaoManual, setVisaoManual] = useState<Visao | null>(null)
+
+  const availableVisoes = useMemo(() => getAvailableVisoes(periodo), [periodo])
+  const visao: Visao = useMemo(() => {
+    if (visaoManual && availableVisoes.some(v => v.value === visaoManual)) {
+      return visaoManual
+    }
+    return smartDefault
+  }, [visaoManual, smartDefault, availableVisoes])
+
+  const periodoRange = useMemo(() => getPeriodoRange(periodo, customRange), [periodo, customRange])
+
+  // Hooks - all use the global period range
+  const { data: resumo, isLoading: isLoadingResumo } = useFluxoCaixaResumo(clinicaId, periodoRange)
+  const { data: fluxoDiario, isLoading: isLoadingDiario } = useFluxoCaixaDiario(clinicaId, periodoRange)
+  const { data: contasPagar, isLoading: isLoadingPagar } = useContasPagar(clinicaId, 30)
+  const { data: contasReceber, isLoading: isLoadingReceber } = useContasReceber(clinicaId, 30)
+  const { data: projecao, isLoading: isLoadingProjecao } = useProjecaoSemanal(clinicaId, 4, periodoRange)
+  const { data: fluxoMensal, isLoading: isLoadingMensal } = useFluxoCaixaMensal(clinicaId, 3, 9, periodoRange)
+  const { data: fluxoAnual, isLoading: isLoadingAnual } = useFluxoCaixaAnual(clinicaId, 1, 1, periodoRange)
+
+  const isLoading = isLoadingResumo || isLoadingDiario || isLoadingPagar || isLoadingReceber || isLoadingProjecao || isLoadingMensal || isLoadingAnual
+
+  const chartData = useMemo(() => {
+    const normalize = (items: any[]) =>
+      items.map((item: any) => {
+        const label = item.label || item.semana || (item.data ? new Date(item.data + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '')
+        const entradasPagas = item.entradas || 0
+        const saidasPagas = item.saidas || 0
+        const entradasPrev = item.entradas_previstas || 0
+        const saidasPrev = item.saidas_previstas || 0
+        return {
+          label,
+          entradasPagas,
+          saidasPagas,
+          entradasPrev,
+          saidasPrev,
+          saldo: (entradasPagas + entradasPrev) - (saidasPagas + saidasPrev),
+        }
+      })
+
+    switch (visao) {
+      case 'diario': return normalize(fluxoDiario || [])
+      case 'semanal': return normalize(projecao || [])
+      case 'mensal': return normalize(fluxoMensal || [])
+      case 'anual': return normalize(fluxoAnual || [])
+      default: return []
+    }
+  }, [visao, fluxoDiario, projecao, fluxoMensal, fluxoAnual])
+
+  const saldoReferencia = resumo?.saldo_atual || 0
+  const info = visaoTitulos[visao]
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="h-4 bg-muted rounded w-20 mb-2 animate-pulse" />
+                <div className="h-8 bg-muted rounded w-28 animate-pulse" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="h-72 bg-muted rounded animate-pulse" />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
-      {/* Alerta de projeção negativa */}
-      {mockProjecao.some(p => p.saldoPrevisto < 0) && (
-        <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
-          <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                Atenção: projeção de saldo negativo na semana de {mockProjecao.find(p => p.saldoPrevisto < 0)?.semana}
-              </p>
-              <p className="text-xs text-yellow-600">Considere antecipar recebimentos ou postergar pagamentos</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Saldo Atual</p>
-            <p className="text-2xl font-bold">{formatCurrency(saldoAtual)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Entradas (período)</p>
-            <p className="text-2xl font-bold text-green-600">{formatCurrency(totalEntradas)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Saídas (período)</p>
-            <p className="text-2xl font-bold text-red-600">{formatCurrency(totalSaidas)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">A Receber</p>
-            <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalAReceber)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">A Pagar</p>
-            <p className="text-2xl font-bold text-orange-600">{formatCurrency(totalAPagar)}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Insights rápidos</h3>
-        <Button variant="ghost" size="sm" onClick={() => setMostrarInsights((prev) => !prev)}>
-          {mostrarInsights ? 'Ocultar' : 'Mostrar'} análises
-        </Button>
-      </div>
-
-      {mostrarInsights && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Resultado projetado</CardTitle>
-              <CardDescription>Próximas 2 semanas</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span>Entradas previstas</span>
-                <strong>{formatCurrency(mockFluxoResumo.contasReceberSemana)}</strong>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="flex items-center justify-between">
-                <span>Saídas previstas</span>
-                <strong className="text-red-600">-{formatCurrency(mockFluxoResumo.contasPagarSemana)}</strong>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Saldo Atual</p>
+                <p className="text-2xl font-bold">{formatCurrency(saldoReferencia)}</p>
               </div>
-              <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
-                Última variação semanal: {mockFluxoResumo.variacaoSaldo}%
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Alertas críticos</CardTitle>
-              <CardDescription>Observe o planejamento</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              {mockFluxoAlertas.map((alerta) => (
-                <div key={alerta.titulo} className="flex items-center justify-between rounded-md border p-2">
-                  <div>
-                    <p className="font-medium">{alerta.titulo}</p>
-                    <p className="text-xs text-muted-foreground">{alerta.descricao}</p>
-                  </div>
-                  <Badge variant="outline" className={alerta.risco === 'alto' ? 'text-red-600 border-red-200' : alerta.risco === 'medio' ? 'text-orange-600 border-orange-200' : 'text-green-600 border-green-200'}>
-                    {alerta.risco}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Gráfico Fluxo Diário */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base">{visaoAtual.titulo}</CardTitle>
-              <CardDescription>{visaoAtual.descricao}</CardDescription>
             </div>
-            <Select value={visao} onValueChange={(value) => setVisao(value as keyof typeof visaoConfigs)}>
-              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+                <ArrowUpRight className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">A Receber</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(resumo?.total_a_receber || 0)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
+                <ArrowDownRight className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">A Pagar</p>
+                <p className="text-2xl font-bold text-red-600">{formatCurrency(resumo?.total_a_pagar || 0)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Chart */}
+      <Card>
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between space-y-0 pb-2">
+          <div className="flex flex-col gap-1">
+            <p className="text-lg font-semibold">{info.titulo}</p>
+            <p className="text-sm text-muted-foreground">{info.descricao}</p>
+          </div>
+          <div className="flex items-center gap-3 sm:ml-auto">
+            <Select value={visao} onValueChange={(v) => setVisaoManual(v as Visao)}>
+              <SelectTrigger className="w-36">
+                <span className="truncate text-left">{getVisaoLabel(visao)}</span>
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="diario">Diário</SelectItem>
-                <SelectItem value="semanal">Semanal</SelectItem>
-                <SelectItem value="mensal">Mensal</SelectItem>
-                <SelectItem value="anual">Anual</SelectItem>
+                {availableVisoes.map((v) => (
+                  <SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {visaoAtual.data.map((item, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground w-24 shrink-0">{item.label}</span>
-                <div className="flex-1 flex items-center gap-1 h-6">
-                  <div className="flex-1 flex justify-end">
-                    <div
-                      className="h-5 bg-green-500 rounded-l transition-all"
-                      style={{ width: `${(item.entradas / maxVal) * 100}%` }}
-                      title={`Entradas: ${formatCurrency(item.entradas)}`}
-                    />
-                  </div>
-                  <div className="w-px h-6 bg-border shrink-0" />
-                  <div className="flex-1">
-                    <div
-                      className="h-5 bg-red-400 rounded-r transition-all"
-                      style={{ width: `${(item.saidas / maxVal) * 100}%` }}
-                      title={`Saídas: ${formatCurrency(item.saidas)}`}
-                    />
-                  </div>
-                </div>
-                <span className={`text-xs font-medium w-24 text-right ${item.saldo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {item.saldo >= 0 ? '+' : ''}{formatCurrency(item.saldo)}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-center gap-6 mt-4 text-xs">
-            <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-sm bg-green-500" />
-              <span className="text-muted-foreground">Entradas</span>
+          {chartData.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <BarChart3 className="h-10 w-10 text-muted-foreground/30 mb-3" />
+              <p className="text-sm text-muted-foreground">Nenhum dado para o período selecionado.</p>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-sm bg-red-400" />
-              <span className="text-muted-foreground">Saídas</span>
+          ) : (
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 11 }}
+                    className="text-muted-foreground"
+                    interval={chartData.length > 15 ? Math.floor(chartData.length / 10) : 0}
+                    angle={chartData.length > 10 ? -45 : 0}
+                    textAnchor={chartData.length > 10 ? 'end' : 'middle'}
+                    height={chartData.length > 10 ? 60 : 30}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11 }}
+                    className="text-muted-foreground"
+                    tickFormatter={(v: number) => {
+                      if (v >= 1000) return `${(v / 1000).toFixed(0)}k`
+                      return v.toString()
+                    }}
+                    width={50}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    verticalAlign="top"
+                    height={36}
+                    formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>}
+                  />
+                  <Line type="monotone" dataKey="entradasPagas" name="Receitas" stroke="#16a34a" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="entradasPrev" name="À Receber" stroke="#facc15" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="saidasPagas" name="Despesas" stroke="#ef4444" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="saidasPrev" name="À Pagar" stroke="#fb923c" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Projeção + Contas */}
+      {/* Contas a Pagar e Receber */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Projeção */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Projeção Semanal
+              <ArrowUpRight className="h-4 w-4 text-green-500" />
+              Próximas Contas a Receber
             </CardTitle>
-            <CardDescription>Previsão baseada em parcelas e recorrências</CardDescription>
+            <CardDescription>Parcelas e pagamentos esperados</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Semana</TableHead>
-                  <TableHead className="text-right">Entradas</TableHead>
-                  <TableHead className="text-right">Saídas</TableHead>
-                  <TableHead className="text-right">Saldo</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockProjecao.map((p, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="text-sm font-medium">{p.semana}</TableCell>
-                    <TableCell className="text-right text-sm text-green-600">{formatCurrency(p.entradasPrevistas)}</TableCell>
-                    <TableCell className="text-right text-sm text-red-600">{formatCurrency(p.saidasPrevistas)}</TableCell>
-                    <TableCell className={`text-right text-sm font-semibold ${p.saldoPrevisto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {p.saldoPrevisto >= 0 ? '+' : ''}{formatCurrency(p.saldoPrevisto)}
-                      {p.saldoPrevisto < 0 && <AlertTriangle className="inline ml-1 h-3 w-3" />}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="space-y-3">
+            {contasReceber?.slice(0, 5).map((conta) => (
+              <div key={conta.id} className="flex items-center justify-between rounded-lg border p-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{conta.descricao}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {conta.paciente ? `${conta.paciente} • ` : ''}Parcela {conta.numero_parcela}/{conta.total_parcelas} • Venc: {formatDate(conta.vencimento)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-2">
+                  {conta.status === 'vencido' && (
+                    <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">Vencido</Badge>
+                  )}
+                  <span className="text-sm font-semibold text-green-600">+{formatCurrency(conta.valor)}</span>
+                </div>
+              </div>
+            ))}
+            {(!contasReceber || contasReceber.length === 0) && (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhuma conta a receber nos próximos 30 dias</p>
+            )}
           </CardContent>
         </Card>
 
-        {/* Contas a Pagar */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -346,61 +414,28 @@ export function FluxoCaixaTab({ periodo }: FluxoCaixaTabProps) {
             <CardDescription>Vencimentos próximos</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {mockContasAPagar.map((conta) => (
+            {contasPagar?.slice(0, 5).map((conta) => (
               <div key={conta.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{conta.descricao}</p>
-                  <p className="text-xs text-muted-foreground">{conta.categoria} • Venc: {formatDate(conta.vencimento)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {conta.categoria} • Parcela {conta.numero_parcela}/{conta.total_parcelas} • Venc: {formatDate(conta.vencimento)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-2">
-                  {conta.status === 'proximo' && <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">Próximo</Badge>}
+                  {conta.status === 'vencido' && (
+                    <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">Vencido</Badge>
+                  )}
                   <span className="text-sm font-semibold text-red-600">-{formatCurrency(conta.valor)}</span>
                 </div>
               </div>
             ))}
+            {(!contasPagar || contasPagar.length === 0) && (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhuma conta a pagar nos próximos 30 dias</p>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Contas a Receber */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <ArrowUpRight className="h-4 w-4 text-green-500" />
-            Próximas Contas a Receber
-          </CardTitle>
-          <CardDescription>Parcelas e pagamentos esperados</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Paciente</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockContasAReceber.map((conta) => (
-                <TableRow key={conta.id}>
-                  <TableCell className="font-medium text-sm">{conta.descricao}</TableCell>
-                  <TableCell className="text-sm">{conta.paciente}</TableCell>
-                  <TableCell className="text-sm">{formatDate(conta.vencimento)}</TableCell>
-                  <TableCell>
-                    {conta.status === 'proximo'
-                      ? <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">Próximo</Badge>
-                      : <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">A Vencer</Badge>
-                    }
-                  </TableCell>
-                  <TableCell className="text-right font-semibold text-green-600">+{formatCurrency(conta.valor)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </div>
   )
 }

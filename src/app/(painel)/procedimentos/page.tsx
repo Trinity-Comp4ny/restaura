@@ -44,7 +44,8 @@ const procedimentosMock: never[] = []
 
 export default function ProcedimentosPage() {
   const { data: user } = useUser()
-  const { data: procedimentos = [] } = useProcedimentos()
+  const clinicaId = user?.clinica_id
+  const { data: procedimentos = [] } = useProcedimentos(clinicaId)
   const createProcedimento = useCreateProcedimento()
   const updateProcedimento = useUpdateProcedimento()
   const inativarProcedimento = useInativarProcedimento()

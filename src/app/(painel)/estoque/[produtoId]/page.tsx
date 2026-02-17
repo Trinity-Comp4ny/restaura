@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ArrowLeft, Edit, Plus, Minus, Trash2, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,29 +32,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { formatCurrency } from '@/lib/utils'
-import { useMockSelects } from '@/lib/api-mock-client'
-
-// Mock de dados do produto (leve, só para exemplo)
-const mockProduto = {
-  id: '1',
-  nome: 'Resina Composta 3M',
-  category: 'Material Restaurador',
-  quantity: 15,
-  minQuantity: 10,
-  unit: 'Unidade',
-  price: 89.90,
-  supplier: 'Dental Supply',
-  brand: '3M',
-  model: 'Filtek Z350 XT',
-  colorSize: 'A2',
-  batchNumber: 'LOT2024001',
-  manufactureDate: '2024-01-01',
-  expiryDate: '2025-12-31',
-  lastPurchaseDate: '2024-01-15',
-  description: 'Resina composta fotopolimerizável de alta qualidade para restaurações estéticas.',
-  location: 'Armário A - Prateleira 2',
-  observacoes: 'Manter em local seco e fresco. Proteger da luz solar direta.',
-}
+import { usePacientes } from '@/hooks/use-pacientes'
+import { useDentistas } from '@/hooks/use-dentistas'
+import { useProcedimentos } from '@/hooks/use-procedimentos'
+import { useProduto } from '@/hooks/use-estoque'
+import { useUser } from '@/hooks/use-user'
 
 // Mock de dados de consumo (leve)
 const consumoMensal = [
@@ -105,11 +87,14 @@ const mockMovimentacoes = [
 ]
 
 export default function ProdutoDetalhePage() {
+  const router = useRouter()
   const params = useParams()
-  const produtoId = params.produtoId as string
-  void produtoId
+  const produtoId = (params?.produtoId as string) || ''
+  const { data: user } = useUser()
+  const clinicaId = user?.clinica_id
+  const { data: produto, isLoading } = useProduto(produtoId)
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(mockProduto)
+  const [formData, setFormData] = useState<any>(produto || {})
   const [saidaQuantity, setSaidaQuantity] = useState('')
   const [saidaPatient, setSaidaPatient] = useState('')
   const [saidaProcedure, setSaidaProcedure] = useState('')
@@ -127,11 +112,10 @@ export default function ProdutoDetalhePage() {
   const [addExpiryDate, setAddExpiryDate] = useState('')
   const [addManufactureDate, setAddManufactureDate] = useState('')
 
-  // Buscar selects via API (leve)
-  const { data: mockPacientes } = useMockSelects('pacientes')
-  const { data: mockDentistas } = useMockSelects('dentistas')
-  const { data: mockProcedimentos } = useMockSelects('procedimentos')
-  const { data: setores } = useMockSelects('setores')
+  const { data: pacientesData } = usePacientes(clinicaId)
+  const { data: dentistasData } = useDentistas(clinicaId)
+  const { data: procedimentosData } = useProcedimentos(clinicaId)
+  const setores = [{ id: '1', nome: 'Consultório 1' }, { id: '2', nome: 'Consultório 2' }, { id: '3', nome: 'Estoque' }]
 
   // Função para calcular dias até vencer
   const getDaysUntilExpiry = (expiryDate: string | null) => {
@@ -458,7 +442,7 @@ export default function ProdutoDetalhePage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="">Selecione um paciente...</option>
-                      {(mockPacientes as any[])?.map((paciente) => (
+                      {(pacientesData as any[])?.map((paciente) => (
                         <option key={paciente.id} value={paciente.id}>
                           {paciente.nome}
                         </option>
@@ -474,7 +458,7 @@ export default function ProdutoDetalhePage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="">Selecione um procedimento...</option>
-                      {(mockProcedimentos as any[])?.map((proc) => (
+                      {(procedimentosData as any[])?.map((proc) => (
                         <option key={proc.id} value={proc.id}>
                           {proc.nome}
                         </option>
@@ -490,7 +474,7 @@ export default function ProdutoDetalhePage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="">Selecione um profissional...</option>
-                      {(mockDentistas as any[])?.map((dentista) => (
+                      {(dentistasData as any[])?.map((dentista) => (
                         <option key={dentista.id} value={dentista.id}>
                           {dentista.nome}
                         </option>
@@ -515,9 +499,9 @@ export default function ProdutoDetalhePage() {
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="">Selecione um setor...</option>
-                      {(setores as string[])?.map((setor) => (
-                        <option key={setor} value={setor}>
-                          {setor}
+                      {setores.map((setor) => (
+                        <option key={setor.id} value={setor.nome}>
+                          {setor.nome}
                         </option>
                       ))}
                     </select>

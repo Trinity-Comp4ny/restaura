@@ -120,6 +120,27 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* Garantir que as fontes sejam carregadas */
+  @supports (font-variation-settings: normal) {
+    body {
+      font-family: var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    }
+  }
+
+  /* Fallback para quando as fontes não carregarem */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  }
+
+  /* Forçar carregamento das fontes */
+  .font-grotesk {
+    font-family: var(--font-space-grotesk), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif !important;
+  }
+
+  .font-inter {
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif !important;
+  }
 }
 
 @layer utilities {

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Building, Save, Camera } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Building, Save, Camera, ArrowLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,36 +11,106 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { useClinica } from '@/hooks/use-user'
+import { useUpdateClinica } from '@/hooks/use-multi-clinic'
 import { toast } from 'sonner'
 import { BRAZILIAN_STATES } from '@/constants'
 
 export default function ClinicaPage() {
   const { data: clinica } = useClinica()
+  const router = useRouter()
+  const { mutateAsync: updateClinica, isPending: saving } = useUpdateClinica()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    nome: clinica?.nome || '',
-    documento: clinica?.documento || '',
-    telefone: clinica?.telefone || '',
-    email: clinica?.email || '',
-    endereco: clinica?.endereco || '',
-    cidade: clinica?.cidade || '',
-    estado: clinica?.estado || '',
-    cep: clinica?.cep || '',
+    nome: '',
+    documento: '',
+    telefone: '',
+    email: '',
+    endereco: '',
+    cidade: '',
+    estado: '',
+    cep: '',
   })
 
-  function handleSave() {
-    // Implementar atualização da clínica
-    toast.success('Dados da clínica atualizados com sucesso!')
-    setIsEditing(false)
+  useEffect(() => {
+    if (!clinica) return
+
+    setFormData({
+      nome: clinica.nome || '',
+      documento: clinica.documento || '',
+      telefone: clinica.telefone || '',
+      email: clinica.email || '',
+      endereco: clinica.endereco || '',
+      cidade: clinica.cidade || '',
+      estado: clinica.estado || '',
+      cep: clinica.cep || '',
+    })
+  }, [clinica])
+
+  async function handleSave() {
+    if (!clinica?.id) {
+      toast.error('Clínica não encontrada para salvar')
+      return
+    }
+
+    try {
+      await updateClinica({
+        id: clinica.id,
+        nome: formData.nome,
+        documento: formData.documento,
+        telefone: formData.telefone,
+        email: formData.email,
+        endereco: formData.endereco,
+        cidade: formData.cidade,
+        estado: formData.estado,
+        cep: formData.cep,
+      } as any)
+      toast.success('Dados da clínica atualizados com sucesso!')
+      setIsEditing(false)
+    } catch (error: any) {
+      toast.error(error?.message || 'Erro ao salvar dados da clínica')
+    }
+  }
+
+  const formatCnpj = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 14)
+    return digits
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d)/, '$1-$2')
+  }
+
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+      return digits
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d)/, '$1-$2')
+    }
+    return digits
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+  }
+
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 8)
+    return digits.replace(/(\d{5})(\d)/, '$1-$2')
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dados da Clínica</h1>
-        <p className="text-muted-foreground">
-          Gerencie as informações da sua clínica.
-        </p>
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push('/configuracoes')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Dados da Clínica</h1>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -54,9 +125,9 @@ export default function ClinicaPage() {
                 <Building className="h-8 w-8" />
               </AvatarFallback>
             </Avatar>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" disabled>
               <Camera className="mr-2 h-4 w-4" />
-              Alterar Logo
+              Em breve
             </Button>
             <p className="text-xs text-muted-foreground">
               PNG ou JPG. Recomendado 200x200px.
@@ -97,7 +168,7 @@ export default function ClinicaPage() {
                 <Input
                   id="documento"
                   value={formData.documento}
-                  onChange={(e) => setFormData({ ...formData, documento: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, documento: formatCnpj(e.target.value) })}
                   disabled={!isEditing}
                   placeholder="00.000.000/0001-00"
                 />
@@ -107,7 +178,7 @@ export default function ClinicaPage() {
                 <Input
                   id="telefone"
                   value={formData.telefone}
-                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, telefone: formatPhone(e.target.value) })}
                   disabled={!isEditing}
                   placeholder="(11) 99999-9999"
                 />
@@ -162,7 +233,7 @@ export default function ClinicaPage() {
                   <Input
                     placeholder="CEP"
                     value={formData.cep}
-                    onChange={(e) => setFormData({ ...formData, cep: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, cep: formatCep(e.target.value) })}
                     disabled={!isEditing}
                   />
                 </div>
@@ -174,9 +245,9 @@ export default function ClinicaPage() {
                 <Button variant="outline" onClick={() => setIsEditing(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleSave}>
+                <Button onClick={handleSave} disabled={saving}>
                   <Save className="mr-2 h-4 w-4" />
-                  Salvar Alterações
+                  {saving ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </div>
             )}
@@ -184,7 +255,7 @@ export default function ClinicaPage() {
         </Card>
       </div>
 
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Configurações Adicionais</CardTitle>
           <CardDescription>
@@ -214,9 +285,9 @@ export default function ClinicaPage() {
           <Separator />
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label>Formas de Pagamento</Label>
+              <Label>Métodos de Cobrança</Label>
               <p className="text-sm text-muted-foreground">
-                Configure os métodos de pagamento.
+                Configure os métodos de cobrança.
               </p>
             </div>
             <Button variant="outline">Configurar</Button>
@@ -232,44 +303,7 @@ export default function ClinicaPage() {
             <Button variant="outline">Configurar</Button>
           </div>
         </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações do Sistema</CardTitle>
-          <CardDescription>
-            Detalhes técnicos da sua conta.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>ID da Clínica</Label>
-              <Input value={clinica?.id || ''} disabled className="bg-muted" />
-            </div>
-            <div className="space-y-2">
-              <Label>Slug</Label>
-              <Input value={clinica?.slug || ''} disabled className="bg-muted" />
-            </div>
-            <div className="space-y-2">
-              <Label>Data de Cadastro</Label>
-              <Input 
-                value={clinica?.criado_em ? new Date(clinica.criado_em).toLocaleDateString('pt-BR') : ''} 
-                disabled 
-                className="bg-muted" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Última Atualização</Label>
-              <Input 
-                value={clinica?.atualizado_em ? new Date(clinica.atualizado_em).toLocaleDateString('pt-BR') : ''} 
-                disabled 
-                className="bg-muted" 
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      </Card> */}
     </div>
   )
 }

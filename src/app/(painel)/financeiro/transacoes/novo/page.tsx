@@ -75,12 +75,15 @@ export default function NovaTransacaoPage() {
     if (!user?.clinica_id) return
 
     const transacaoData = {
-      ...data,
       clinica_id: user.clinica_id,
-      amount: parseFloat(data.amount.replace(/[^\d.,]/g, '').replace(',', '.')),
+      tipo: data.type as 'receita' | 'despesa',
+      categoria: data.category,
+      descricao: data.description,
+      valor: parseFloat(data.amount.replace(/[^\d.,]/g, '').replace(',', '.')),
       paciente_id: data.paciente_id || null,
-      payment_method: data.payment_method || null,
-      due_date: data.due_date || null,
+      metodo_pagamento: data.payment_method || null,
+      data_vencimento: data.due_date || null,
+      status: 'pendente' as const,
     }
 
     await createTransacao.mutateAsync(transacaoData)

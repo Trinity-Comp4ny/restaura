@@ -1,0 +1,5705 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.contas_pagar": {
+      "name": "contas_pagar",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fornecedor_id": {
+          "name": "fornecedor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fornecedor_nome": {
+          "name": "fornecedor_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_total": {
+          "name": "valor_total",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor_pago": {
+          "name": "valor_pago",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "centro_custo_id": {
+          "name": "centro_custo_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_emissao": {
+          "name": "data_emissao",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_vencimento": {
+          "name": "data_vencimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_pagamento": {
+          "name": "data_pagamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quantidade_parcelas": {
+          "name": "quantidade_parcelas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "parcela_atual": {
+          "name": "parcela_atual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pendente'"
+        },
+        "tipo_documento": {
+          "name": "tipo_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "numero_documento": {
+          "name": "numero_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anexo_url": {
+          "name": "anexo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_por_id": {
+          "name": "criado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_contas_pagar_categoria": {
+          "name": "idx_contas_pagar_categoria",
+          "columns": [
+            {
+              "expression": "categoria",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_contas_pagar_clinica": {
+          "name": "idx_contas_pagar_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_contas_pagar_status": {
+          "name": "idx_contas_pagar_status",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_contas_pagar_vencimento": {
+          "name": "idx_contas_pagar_vencimento",
+          "columns": [
+            {
+              "expression": "data_vencimento",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "contas_pagar_centro_custo_id_fkey": {
+          "name": "contas_pagar_centro_custo_id_fkey",
+          "tableFrom": "contas_pagar",
+          "tableTo": "centros_custo",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "centro_custo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contas_pagar_clinica_id_fkey": {
+          "name": "contas_pagar_clinica_id_fkey",
+          "tableFrom": "contas_pagar",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "contas_pagar_criado_por_id_fkey": {
+          "name": "contas_pagar_criado_por_id_fkey",
+          "tableFrom": "contas_pagar",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "criado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contas_pagar_fornecedor_id_fkey": {
+          "name": "contas_pagar_fornecedor_id_fkey",
+          "tableFrom": "contas_pagar",
+          "tableTo": "fornecedores",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "fornecedor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "contas_pagar_status_check": {
+          "name": "contas_pagar_status_check",
+          "value": "status = ANY (ARRAY['pendente'::text, 'pago'::text, 'vencido'::text, 'a_vencer'::text, 'cancelado'::text, 'renegociado'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.contas_receber": {
+      "name": "contas_receber",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paciente_id": {
+          "name": "paciente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "consulta_id": {
+          "name": "consulta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plano_parcelamento_id": {
+          "name": "plano_parcelamento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcela_id": {
+          "name": "parcela_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor_total": {
+          "name": "valor_total",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor_pago": {
+          "name": "valor_pago",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "origem": {
+          "name": "origem",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_emissao": {
+          "name": "data_emissao",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_vencimento": {
+          "name": "data_vencimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_pagamento": {
+          "name": "data_pagamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metodo_pagamento": {
+          "name": "metodo_pagamento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "forma_pagamento": {
+          "name": "forma_pagamento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "convenio_id": {
+          "name": "convenio_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "autorizacao_convenio": {
+          "name": "autorizacao_convenio",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pendente'"
+        },
+        "numero_documento": {
+          "name": "numero_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anexo_url": {
+          "name": "anexo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_por_id": {
+          "name": "criado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_contas_receber_clinica": {
+          "name": "idx_contas_receber_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_contas_receber_paciente": {
+          "name": "idx_contas_receber_paciente",
+          "columns": [
+            {
+              "expression": "paciente_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_contas_receber_status": {
+          "name": "idx_contas_receber_status",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_contas_receber_vencimento": {
+          "name": "idx_contas_receber_vencimento",
+          "columns": [
+            {
+              "expression": "data_vencimento",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "contas_receber_clinica_id_fkey": {
+          "name": "contas_receber_clinica_id_fkey",
+          "tableFrom": "contas_receber",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "contas_receber_consulta_id_fkey": {
+          "name": "contas_receber_consulta_id_fkey",
+          "tableFrom": "contas_receber",
+          "tableTo": "consultas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "consulta_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contas_receber_convenio_id_fkey": {
+          "name": "contas_receber_convenio_id_fkey",
+          "tableFrom": "contas_receber",
+          "tableTo": "planos_convenio",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "convenio_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contas_receber_criado_por_id_fkey": {
+          "name": "contas_receber_criado_por_id_fkey",
+          "tableFrom": "contas_receber",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "criado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contas_receber_paciente_id_fkey": {
+          "name": "contas_receber_paciente_id_fkey",
+          "tableFrom": "contas_receber",
+          "tableTo": "pacientes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "paciente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "contas_receber_status_check": {
+          "name": "contas_receber_status_check",
+          "value": "status = ANY (ARRAY['pendente'::text, 'pago'::text, 'vencido'::text, 'a_vencer'::text, 'cancelado'::text, 'renegociado'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.contatos_inadimplencia": {
+      "name": "contatos_inadimplencia",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paciente_id": {
+          "name": "paciente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "conta_receber_id": {
+          "name": "conta_receber_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo_contato": {
+          "name": "tipo_contato",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contato_realizado_em": {
+          "name": "contato_realizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "responsavel_contato_id": {
+          "name": "responsavel_contato_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status_contato": {
+          "name": "status_contato",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "proximo_contato_em": {
+          "name": "proximo_contato_em",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "proxima_acao": {
+          "name": "proxima_acao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_contatos_inadimplencia_data": {
+          "name": "idx_contatos_inadimplencia_data",
+          "columns": [
+            {
+              "expression": "contato_realizado_em",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_contatos_inadimplencia_paciente": {
+          "name": "idx_contatos_inadimplencia_paciente",
+          "columns": [
+            {
+              "expression": "paciente_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "contatos_inadimplencia_clinica_id_fkey": {
+          "name": "contatos_inadimplencia_clinica_id_fkey",
+          "tableFrom": "contatos_inadimplencia",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "contatos_inadimplencia_conta_receber_id_fkey": {
+          "name": "contatos_inadimplencia_conta_receber_id_fkey",
+          "tableFrom": "contatos_inadimplencia",
+          "tableTo": "contas_receber",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "conta_receber_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "contatos_inadimplencia_paciente_id_fkey": {
+          "name": "contatos_inadimplencia_paciente_id_fkey",
+          "tableFrom": "contatos_inadimplencia",
+          "tableTo": "pacientes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "paciente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "contatos_inadimplencia_responsavel_contato_id_fkey": {
+          "name": "contatos_inadimplencia_responsavel_contato_id_fkey",
+          "tableFrom": "contatos_inadimplencia",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "responsavel_contato_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "contatos_inadimplencia_status_contato_check": {
+          "name": "contatos_inadimplencia_status_contato_check",
+          "value": "status_contato = ANY (ARRAY['contato_realizado'::text, 'nao_atendeu'::text, 'mensagem_deixada'::text, 'promessa_pagamento'::text, 'negociacao'::text, 'recusa'::text])"
+        },
+        "contatos_inadimplencia_tipo_contato_check": {
+          "name": "contatos_inadimplencia_tipo_contato_check",
+          "value": "tipo_contato = ANY (ARRAY['telefone'::text, 'whatsapp'::text, 'email'::text, 'sms'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.faturas_cartao": {
+      "name": "faturas_cartao",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "cartao_id": {
+          "name": "cartao_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "conta_bancaria_id": {
+          "name": "conta_bancaria_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mes_referencia": {
+          "name": "mes_referencia",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_vencimento": {
+          "name": "data_vencimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_fechamento": {
+          "name": "data_fechamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor_aberto": {
+          "name": "valor_aberto",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "valor_pago": {
+          "name": "valor_pago",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'aberta'"
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_faturas_cartao_cartao_id": {
+          "name": "idx_faturas_cartao_cartao_id",
+          "columns": [
+            {
+              "expression": "cartao_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_faturas_cartao_conta_id": {
+          "name": "idx_faturas_cartao_conta_id",
+          "columns": [
+            {
+              "expression": "conta_bancaria_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_faturas_cartao_mes": {
+          "name": "idx_faturas_cartao_mes",
+          "columns": [
+            {
+              "expression": "mes_referencia",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_faturas_cartao_status": {
+          "name": "idx_faturas_cartao_status",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "faturas_cartao_cartao_id_fkey": {
+          "name": "faturas_cartao_cartao_id_fkey",
+          "tableFrom": "faturas_cartao",
+          "tableTo": "cartoes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "cartao_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "faturas_cartao_conta_bancaria_id_fkey": {
+          "name": "faturas_cartao_conta_bancaria_id_fkey",
+          "tableFrom": "faturas_cartao",
+          "tableTo": "contas_bancarias",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "conta_bancaria_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "faturas_cartao_status_check": {
+          "name": "faturas_cartao_status_check",
+          "value": "status = ANY (ARRAY['aberta'::text, 'fechada'::text, 'paga'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.convites": {
+      "name": "convites",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "papel": {
+          "name": "papel",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'recepcionista'"
+        },
+        "token": {
+          "name": "token",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pendente'"
+        },
+        "convidado_por_id": {
+          "name": "convidado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aceito_por_id": {
+          "name": "aceito_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_expiracao": {
+          "name": "data_expiracao",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "(now() + '7 days'::interval)"
+        },
+        "aceito_em": {
+          "name": "aceito_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_convites_clinica": {
+          "name": "idx_convites_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_convites_email": {
+          "name": "idx_convites_email",
+          "columns": [
+            {
+              "expression": "email",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_convites_status": {
+          "name": "idx_convites_status",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_convites_token": {
+          "name": "idx_convites_token",
+          "columns": [
+            {
+              "expression": "token",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "convites_aceito_por_id_fkey": {
+          "name": "convites_aceito_por_id_fkey",
+          "tableFrom": "convites",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "aceito_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "convites_clinica_id_fkey": {
+          "name": "convites_clinica_id_fkey",
+          "tableFrom": "convites",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "convites_convidado_por_id_fkey": {
+          "name": "convites_convidado_por_id_fkey",
+          "tableFrom": "convites",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "convidado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "convites_clinica_id_email_status_key": {
+          "columns": [
+            "clinica_id",
+            "email",
+            "status"
+          ],
+          "nullsNotDistinct": false,
+          "name": "convites_clinica_id_email_status_key"
+        },
+        "convites_token_key": {
+          "columns": [
+            "token"
+          ],
+          "nullsNotDistinct": false,
+          "name": "convites_token_key"
+        }
+      },
+      "checkConstraints": {
+        "convites_status_check": {
+          "name": "convites_status_check",
+          "value": "status = ANY (ARRAY['pendente'::text, 'aceito'::text, 'expirado'::text, 'cancelado'::text])"
+        }
+      },
+      "policies": {
+        "Admins verem todos os convites da clínica": {
+          "name": "Admins verem todos os convites da clínica",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "(clinica_id IN ( SELECT usuarios.clinica_id\n   FROM usuarios\n  WHERE ((usuarios.auth_usuario_id = auth.uid()) AND (usuarios.papel = 'admin'::user_role))))"
+        },
+        "Usuários verem próprios convites": {
+          "name": "Usuários verem próprios convites",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ]
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.convites_fundador": {
+      "name": "convites_fundador",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pendente'"
+        },
+        "convidado_por_id": {
+          "name": "convidado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aceito_por_id": {
+          "name": "aceito_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinica_criada_id": {
+          "name": "clinica_criada_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_expiracao": {
+          "name": "data_expiracao",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "(now() + '14 days'::interval)"
+        },
+        "aceito_em": {
+          "name": "aceito_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_convites_fundador_email": {
+          "name": "idx_convites_fundador_email",
+          "columns": [
+            {
+              "expression": "email",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_convites_fundador_status": {
+          "name": "idx_convites_fundador_status",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_convites_fundador_token": {
+          "name": "idx_convites_fundador_token",
+          "columns": [
+            {
+              "expression": "token",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "convites_fundador_aceito_por_id_fkey": {
+          "name": "convites_fundador_aceito_por_id_fkey",
+          "tableFrom": "convites_fundador",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "aceito_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "convites_fundador_clinica_criada_id_fkey": {
+          "name": "convites_fundador_clinica_criada_id_fkey",
+          "tableFrom": "convites_fundador",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_criada_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "convites_fundador_convidado_por_id_fkey": {
+          "name": "convites_fundador_convidado_por_id_fkey",
+          "tableFrom": "convites_fundador",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "convidado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "convites_fundador_email_key": {
+          "columns": [
+            "email"
+          ],
+          "nullsNotDistinct": false,
+          "name": "convites_fundador_email_key"
+        },
+        "convites_fundador_token_key": {
+          "columns": [
+            "token"
+          ],
+          "nullsNotDistinct": false,
+          "name": "convites_fundador_token_key"
+        }
+      },
+      "checkConstraints": {
+        "convites_fundador_status_check": {
+          "name": "convites_fundador_status_check",
+          "value": "status = ANY (ARRAY['pendente'::text, 'aceito'::text, 'expirado'::text, 'cancelado'::text])"
+        }
+      },
+      "policies": {
+        "Admins sistema gerenciam convites fundador": {
+          "name": "Admins sistema gerenciam convites fundador",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "(EXISTS ( SELECT 1\n   FROM auth.users\n  WHERE ((users.id = auth.uid()) AND ((users.email)::text = ANY (ARRAY['admin@restaura.com'::text, 'suporte@restaura.com'::text])))))"
+        },
+        "Usuários verem próprios convites fundador": {
+          "name": "Usuários verem próprios convites fundador",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ]
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.procedimentos": {
+      "name": "procedimentos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "duracao_minutos": {
+          "name": "duracao_minutos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 30
+        },
+        "valor_padrao": {
+          "name": "valor_padrao",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cor": {
+          "name": "cor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'#3b82f6'"
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "procedimentos_clinica_id_fkey": {
+          "name": "procedimentos_clinica_id_fkey",
+          "tableFrom": "procedimentos",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.parcelas": {
+      "name": "parcelas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transacao_id": {
+          "name": "transacao_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "numero_parcela": {
+          "name": "numero_parcela",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_parcelas": {
+          "name": "total_parcelas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor": {
+          "name": "valor",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_vencimento": {
+          "name": "data_vencimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_pagamento": {
+          "name": "data_pagamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_credito_prevista": {
+          "name": "data_credito_prevista",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pendente'"
+        },
+        "fatura_cartao_id": {
+          "name": "fatura_cartao_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "valor_multa": {
+          "name": "valor_multa",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "valor_juros": {
+          "name": "valor_juros",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "valor_desconto": {
+          "name": "valor_desconto",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "valor_corrigido": {
+          "name": "valor_corrigido",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "dias_atraso": {
+          "name": "dias_atraso",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "status_calculado": {
+          "name": "status_calculado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pendente'"
+        }
+      },
+      "indexes": {
+        "idx_parcelas_clinica": {
+          "name": "idx_parcelas_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_parcelas_fatura": {
+          "name": "idx_parcelas_fatura",
+          "columns": [
+            {
+              "expression": "fatura_cartao_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(fatura_cartao_id IS NOT NULL)",
+          "with": {}
+        },
+        "idx_parcelas_status": {
+          "name": "idx_parcelas_status",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_parcelas_transacao": {
+          "name": "idx_parcelas_transacao",
+          "columns": [
+            {
+              "expression": "transacao_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_parcelas_transacao_numero": {
+          "name": "idx_parcelas_transacao_numero",
+          "columns": [
+            {
+              "expression": "transacao_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "numero_parcela",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_parcelas_vencimento": {
+          "name": "idx_parcelas_vencimento",
+          "columns": [
+            {
+              "expression": "data_vencimento",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "parcelas_clinica_id_fkey": {
+          "name": "parcelas_clinica_id_fkey",
+          "tableFrom": "parcelas",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "parcelas_fatura_cartao_id_fkey": {
+          "name": "parcelas_fatura_cartao_id_fkey",
+          "tableFrom": "parcelas",
+          "tableTo": "faturas_cartao",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "fatura_cartao_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "parcelas_transacao_id_fkey": {
+          "name": "parcelas_transacao_id_fkey",
+          "tableFrom": "parcelas",
+          "tableTo": "transacoes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "transacao_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "parcelas_status_check": {
+          "name": "parcelas_status_check",
+          "value": "status = ANY (ARRAY['pendente'::text, 'pago'::text, 'vencido'::text, 'cancelado'::text])"
+        }
+      },
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.centros_custo": {
+      "name": "centros_custo",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cor": {
+          "name": "cor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'#8b5cf6'"
+        },
+        "is_padrao": {
+          "name": "is_padrao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "centros_custo_clinica_id_fkey": {
+          "name": "centros_custo_clinica_id_fkey",
+          "tableFrom": "centros_custo",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "centros_custo_clinica_id_nome_key": {
+          "columns": [
+            "clinica_id",
+            "nome"
+          ],
+          "nullsNotDistinct": false,
+          "name": "centros_custo_clinica_id_nome_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {
+        "Ver centros_custo da própria clínica": {
+          "name": "Ver centros_custo da própria clínica",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "(clinica_id IN ( SELECT clinicas.id\n   FROM clinicas\n  WHERE (clinicas.id IN ( SELECT usuarios.clinica_id\n           FROM usuarios\n          WHERE (usuarios.auth_usuario_id = auth.uid())))))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.planos_convenio": {
+      "name": "planos_convenio",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operadora": {
+          "name": "operadora",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "codigo": {
+          "name": "codigo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taxa_desconto": {
+          "name": "taxa_desconto",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "prazo_pagamento": {
+          "name": "prazo_pagamento",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 30
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "planos_convenio_clinica_id_fkey": {
+          "name": "planos_convenio_clinica_id_fkey",
+          "tableFrom": "planos_convenio",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "planos_convenio_clinica_id_nome_operadora_key": {
+          "columns": [
+            "clinica_id",
+            "nome",
+            "operadora"
+          ],
+          "nullsNotDistinct": false,
+          "name": "planos_convenio_clinica_id_nome_operadora_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.contas_bancarias": {
+      "name": "contas_bancarias",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "banco": {
+          "name": "banco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agencia": {
+          "name": "agencia",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta": {
+          "name": "conta",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "saldo": {
+          "name": "saldo",
+          "type": "numeric(15, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "is_padrao": {
+          "name": "is_padrao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ativa": {
+          "name": "ativa",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "contas_bancarias_clinica_id_fkey": {
+          "name": "contas_bancarias_clinica_id_fkey",
+          "tableFrom": "contas_bancarias",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.cartoes": {
+      "name": "cartoes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "banco": {
+          "name": "banco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ultimos_digitos": {
+          "name": "ultimos_digitos",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo_cartao": {
+          "name": "tipo_cartao",
+          "type": "tipo_cartao",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'credito'"
+        },
+        "limite": {
+          "name": "limite",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "dia_vencimento": {
+          "name": "dia_vencimento",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dia_fechamento": {
+          "name": "dia_fechamento",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_corporativo": {
+          "name": "is_corporativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "conta_fatura_id": {
+          "name": "conta_fatura_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_padrao": {
+          "name": "is_padrao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_cartoes_tipo": {
+          "name": "idx_cartoes_tipo",
+          "columns": [
+            {
+              "expression": "tipo_cartao",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "enum_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "cartoes_credito_clinica_id_fkey": {
+          "name": "cartoes_credito_clinica_id_fkey",
+          "tableFrom": "cartoes",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "cartoes_credito_conta_fatura_id_fkey": {
+          "name": "cartoes_credito_conta_fatura_id_fkey",
+          "tableFrom": "cartoes",
+          "tableTo": "contas_bancarias",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "conta_fatura_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {
+        "Gerenciar cartoes da própria clínica": {
+          "name": "Gerenciar cartoes da própria clínica",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "(clinica_id IN ( SELECT clinicas.id\n   FROM clinicas\n  WHERE (clinicas.id IN ( SELECT usuarios.clinica_id\n           FROM usuarios\n          WHERE (usuarios.auth_usuario_id = auth.uid())))))"
+        },
+        "Ver cartoes da própria clínica": {
+          "name": "Ver cartoes da própria clínica",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ]
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.produtos": {
+      "name": "produtos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "marca": {
+          "name": "marca",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "modelo": {
+          "name": "modelo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cor_tamanho": {
+          "name": "cor_tamanho",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unidade": {
+          "name": "unidade",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'Unidade'"
+        },
+        "quantidade": {
+          "name": "quantidade",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "quantidade_minima": {
+          "name": "quantidade_minima",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "preco": {
+          "name": "preco",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "fornecedor": {
+          "name": "fornecedor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "localizacao": {
+          "name": "localizacao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_produtos_clinica": {
+          "name": "idx_produtos_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "produtos_clinica_id_fkey": {
+          "name": "produtos_clinica_id_fkey",
+          "tableFrom": "produtos",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.produto_lotes": {
+      "name": "produto_lotes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "produto_id": {
+          "name": "produto_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lote": {
+          "name": "lote",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_validade": {
+          "name": "data_validade",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quantidade": {
+          "name": "quantidade",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "quantidade_disponivel": {
+          "name": "quantidade_disponivel",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "fornecedor": {
+          "name": "fornecedor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "produto_lotes_produto_id_fkey": {
+          "name": "produto_lotes_produto_id_fkey",
+          "tableFrom": "produto_lotes",
+          "tableTo": "produtos",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "produto_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.movimentacoes_estoque": {
+      "name": "movimentacoes_estoque",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "produto_id": {
+          "name": "produto_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lote_id": {
+          "name": "lote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantidade": {
+          "name": "quantidade",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "motivo": {
+          "name": "motivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_por_id": {
+          "name": "criado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_movimentacoes_estoque_clinica": {
+          "name": "idx_movimentacoes_estoque_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_movimentacoes_estoque_produto": {
+          "name": "idx_movimentacoes_estoque_produto",
+          "columns": [
+            {
+              "expression": "produto_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "movimentacoes_estoque_clinica_id_fkey": {
+          "name": "movimentacoes_estoque_clinica_id_fkey",
+          "tableFrom": "movimentacoes_estoque",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "movimentacoes_estoque_criado_por_id_fkey": {
+          "name": "movimentacoes_estoque_criado_por_id_fkey",
+          "tableFrom": "movimentacoes_estoque",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "criado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "movimentacoes_estoque_lote_id_fkey": {
+          "name": "movimentacoes_estoque_lote_id_fkey",
+          "tableFrom": "movimentacoes_estoque",
+          "tableTo": "produto_lotes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "lote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "movimentacoes_estoque_produto_id_fkey": {
+          "name": "movimentacoes_estoque_produto_id_fkey",
+          "tableFrom": "movimentacoes_estoque",
+          "tableTo": "produtos",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "produto_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.fornecedores": {
+      "name": "fornecedores",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome_fantasia": {
+          "name": "nome_fantasia",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "razao_social": {
+          "name": "razao_social",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cnpj": {
+          "name": "cnpj",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "telefone": {
+          "name": "telefone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "endereco": {
+          "name": "endereco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria_fornecedor": {
+          "name": "categoria_fornecedor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "condicoes_pagamento": {
+          "name": "condicoes_pagamento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_padrao": {
+          "name": "is_padrao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fornecedores_clinica_id_fkey": {
+          "name": "fornecedores_clinica_id_fkey",
+          "tableFrom": "fornecedores",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "fornecedores_clinica_id_nome_fantasia_key": {
+          "columns": [
+            "clinica_id",
+            "nome_fantasia"
+          ],
+          "nullsNotDistinct": false,
+          "name": "fornecedores_clinica_id_nome_fantasia_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {
+        "Ver fornecedores da própria clínica": {
+          "name": "Ver fornecedores da própria clínica",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "(clinica_id IN ( SELECT clinicas.id\n   FROM clinicas\n  WHERE (clinicas.id IN ( SELECT usuarios.clinica_id\n           FROM usuarios\n          WHERE (usuarios.auth_usuario_id = auth.uid())))))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.tipos_documento": {
+      "name": "tipos_documento",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "modelo": {
+          "name": "modelo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "exige_numero": {
+          "name": "exige_numero",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tipos_documento_clinica_id_fkey": {
+          "name": "tipos_documento_clinica_id_fkey",
+          "tableFrom": "tipos_documento",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "tipos_documento_clinica_id_nome_key": {
+          "columns": [
+            "clinica_id",
+            "nome"
+          ],
+          "nullsNotDistinct": false,
+          "name": "tipos_documento_clinica_id_nome_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.clinicas": {
+      "name": "clinicas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "documento": {
+          "name": "documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "telefone": {
+          "name": "telefone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "endereco": {
+          "name": "endereco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cidade": {
+          "name": "cidade",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estado": {
+          "name": "estado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cep": {
+          "name": "cep",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url_logo": {
+          "name": "url_logo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "configuracoes": {
+          "name": "configuracoes",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{}'::jsonb"
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "clinicas_slug_key": {
+          "columns": [
+            "slug"
+          ],
+          "nullsNotDistinct": false,
+          "name": "clinicas_slug_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.usuarios": {
+      "name": "usuarios",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "auth_usuario_id": {
+          "name": "auth_usuario_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "papel": {
+          "name": "papel",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'recepcionista'"
+        },
+        "telefone": {
+          "name": "telefone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cro": {
+          "name": "cro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "especialidade": {
+          "name": "especialidade",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_usuarios_clinica": {
+          "name": "idx_usuarios_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "usuarios_auth_usuario_id_fkey": {
+          "name": "usuarios_auth_usuario_id_fkey",
+          "tableFrom": "usuarios",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "auth_usuario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "usuarios_clinica_id_fkey": {
+          "name": "usuarios_clinica_id_fkey",
+          "tableFrom": "usuarios",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "usuarios_auth_usuario_id_key": {
+          "columns": [
+            "auth_usuario_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "usuarios_auth_usuario_id_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.pacientes": {
+      "name": "pacientes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "telefone": {
+          "name": "telefone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_nascimento": {
+          "name": "data_nascimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "genero": {
+          "name": "genero",
+          "type": "genero",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cpf": {
+          "name": "cpf",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rg": {
+          "name": "rg",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "endereco": {
+          "name": "endereco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cidade": {
+          "name": "cidade",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estado": {
+          "name": "estado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cep": {
+          "name": "cep",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "convenio_principal": {
+          "name": "convenio_principal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alergias": {
+          "name": "alergias",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_pacientes_clinica": {
+          "name": "idx_pacientes_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "pacientes_clinica_id_fkey": {
+          "name": "pacientes_clinica_id_fkey",
+          "tableFrom": "pacientes",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.consultas": {
+      "name": "consultas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paciente_id": {
+          "name": "paciente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dentista_id": {
+          "name": "dentista_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "procedimento_id": {
+          "name": "procedimento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_hora": {
+          "name": "data_hora",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duracao_minutos": {
+          "name": "duracao_minutos",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 30
+        },
+        "status": {
+          "name": "status",
+          "type": "appointment_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'agendado'"
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor": {
+          "name": "valor",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pago": {
+          "name": "pago",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_consultas_clinica": {
+          "name": "idx_consultas_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_consultas_data_hora": {
+          "name": "idx_consultas_data_hora",
+          "columns": [
+            {
+              "expression": "data_hora",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "timestamptz_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_consultas_dentista": {
+          "name": "idx_consultas_dentista",
+          "columns": [
+            {
+              "expression": "dentista_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_consultas_paciente": {
+          "name": "idx_consultas_paciente",
+          "columns": [
+            {
+              "expression": "paciente_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_consultas_status": {
+          "name": "idx_consultas_status",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "enum_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "consultas_clinica_id_fkey": {
+          "name": "consultas_clinica_id_fkey",
+          "tableFrom": "consultas",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "consultas_dentista_id_fkey": {
+          "name": "consultas_dentista_id_fkey",
+          "tableFrom": "consultas",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "dentista_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "consultas_paciente_id_fkey": {
+          "name": "consultas_paciente_id_fkey",
+          "tableFrom": "consultas",
+          "tableTo": "pacientes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "paciente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "consultas_procedimento_id_fkey": {
+          "name": "consultas_procedimento_id_fkey",
+          "tableFrom": "consultas",
+          "tableTo": "procedimentos",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "procedimento_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.prontuarios": {
+      "name": "prontuarios",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paciente_id": {
+          "name": "paciente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "consulta_id": {
+          "name": "consulta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "record_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "conteudo": {
+          "name": "conteudo",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "criado_por_id": {
+          "name": "criado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "prontuarios_clinica_id_fkey": {
+          "name": "prontuarios_clinica_id_fkey",
+          "tableFrom": "prontuarios",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "prontuarios_consulta_id_fkey": {
+          "name": "prontuarios_consulta_id_fkey",
+          "tableFrom": "prontuarios",
+          "tableTo": "consultas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "consulta_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "prontuarios_criado_por_id_fkey": {
+          "name": "prontuarios_criado_por_id_fkey",
+          "tableFrom": "prontuarios",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "criado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "prontuarios_paciente_id_fkey": {
+          "name": "prontuarios_paciente_id_fkey",
+          "tableFrom": "prontuarios",
+          "tableTo": "pacientes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "paciente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.categorias_receita": {
+      "name": "categorias_receita",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cor": {
+          "name": "cor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'#3b82f6'"
+        },
+        "is_padrao": {
+          "name": "is_padrao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ativa": {
+          "name": "ativa",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "categorias_receita_clinica_id_fkey": {
+          "name": "categorias_receita_clinica_id_fkey",
+          "tableFrom": "categorias_receita",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "categorias_receita_clinica_id_nome_key": {
+          "columns": [
+            "clinica_id",
+            "nome"
+          ],
+          "nullsNotDistinct": false,
+          "name": "categorias_receita_clinica_id_nome_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {
+        "Ver categorias da própria clínica": {
+          "name": "Ver categorias da própria clínica",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "(clinica_id IN ( SELECT clinicas.id\n   FROM clinicas\n  WHERE (clinicas.id IN ( SELECT usuarios.clinica_id\n           FROM usuarios\n          WHERE (usuarios.auth_usuario_id = auth.uid())))))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.categorias_despesa": {
+      "name": "categorias_despesa",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cor": {
+          "name": "cor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'#ef4444'"
+        },
+        "is_padrao": {
+          "name": "is_padrao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ativa": {
+          "name": "ativa",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "categorias_despesa_clinica_id_fkey": {
+          "name": "categorias_despesa_clinica_id_fkey",
+          "tableFrom": "categorias_despesa",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "categorias_despesa_clinica_id_nome_key": {
+          "columns": [
+            "clinica_id",
+            "nome"
+          ],
+          "nullsNotDistinct": false,
+          "name": "categorias_despesa_clinica_id_nome_key"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.metodos_pagamento": {
+      "name": "metodos_pagamento",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taxas_percentual": {
+          "name": "taxas_percentual",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "taxas_fixa": {
+          "name": "taxas_fixa",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "prazo_deposito": {
+          "name": "prazo_deposito",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "adquirente": {
+          "name": "adquirente",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_padrao": {
+          "name": "is_padrao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "conta_vinculada_id": {
+          "name": "conta_vinculada_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "metodos_pagamento_clinica_id_fkey": {
+          "name": "metodos_pagamento_clinica_id_fkey",
+          "tableFrom": "metodos_pagamento",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "metodos_pagamento_conta_vinculada_id_fkey": {
+          "name": "metodos_pagamento_conta_vinculada_id_fkey",
+          "tableFrom": "metodos_pagamento",
+          "tableTo": "contas_bancarias",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "conta_vinculada_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.metodos_cobranca": {
+      "name": "metodos_cobranca",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taxas_percentual": {
+          "name": "taxas_percentual",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "taxas_fixa": {
+          "name": "taxas_fixa",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "prazo_deposito": {
+          "name": "prazo_deposito",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "adquirente": {
+          "name": "adquirente",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta_vinculada_id": {
+          "name": "conta_vinculada_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_padrao": {
+          "name": "is_padrao",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_metodos_cobranca_ativos": {
+          "name": "idx_metodos_cobranca_ativos",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "ativo",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "bool_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_metodos_cobranca_clinica": {
+          "name": "idx_metodos_cobranca_clinica",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_metodos_cobranca_padrao": {
+          "name": "idx_metodos_cobranca_padrao",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "bool_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "is_padrao",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "metodos_cobranca_clinica_id_fkey": {
+          "name": "metodos_cobranca_clinica_id_fkey",
+          "tableFrom": "metodos_cobranca",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "metodos_cobranca_conta_vinculada_id_fkey": {
+          "name": "metodos_cobranca_conta_vinculada_id_fkey",
+          "tableFrom": "metodos_cobranca",
+          "tableTo": "contas_bancarias",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "conta_vinculada_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.transacoes": {
+      "name": "transacoes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "transaction_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor_bruto": {
+          "name": "valor_bruto",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor_liquido": {
+          "name": "valor_liquido",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor_taxas": {
+          "name": "valor_taxas",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "paciente_id": {
+          "name": "paciente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "consulta_id": {
+          "name": "consulta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fornecedor": {
+          "name": "fornecedor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plano_id": {
+          "name": "plano_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "autorizacao_id": {
+          "name": "autorizacao_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metodo_pagamento_id": {
+          "name": "metodo_pagamento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta_origem_id": {
+          "name": "conta_origem_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta_destino_id": {
+          "name": "conta_destino_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cartao_id": {
+          "name": "cartao_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_compra": {
+          "name": "data_compra",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_emissao": {
+          "name": "data_emissao",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_vencimento": {
+          "name": "data_vencimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_pagamento": {
+          "name": "data_pagamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_credito_prevista": {
+          "name": "data_credito_prevista",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_parcelas": {
+          "name": "total_parcelas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "parcela_atual": {
+          "name": "parcela_atual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "valor_parcela": {
+          "name": "valor_parcela",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_primeira_parcela": {
+          "name": "data_primeira_parcela",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "transaction_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pendente'"
+        },
+        "origem_receita": {
+          "name": "origem_receita",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "centro_custo": {
+          "name": "centro_custo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo_documento": {
+          "name": "tipo_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "numero_documento": {
+          "name": "numero_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dados_convenio": {
+          "name": "dados_convenio",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{}'::jsonb"
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anexos": {
+          "name": "anexos",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_por_id": {
+          "name": "criado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "atualizado_por_id": {
+          "name": "atualizado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metodo_cobranca_id": {
+          "name": "metodo_cobranca_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta_bancaria_id": {
+          "name": "conta_bancaria_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fatura_cartao_id": {
+          "name": "fatura_cartao_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_transacoes_cartao": {
+          "name": "idx_transacoes_cartao",
+          "columns": [
+            {
+              "expression": "cartao_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(cartao_id IS NOT NULL)",
+          "with": {}
+        },
+        "idx_transacoes_clinica_tipo": {
+          "name": "idx_transacoes_clinica_tipo",
+          "columns": [
+            {
+              "expression": "clinica_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "tipo",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "enum_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_transacoes_data_pagamento": {
+          "name": "idx_transacoes_data_pagamento",
+          "columns": [
+            {
+              "expression": "data_pagamento",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(data_pagamento IS NOT NULL)",
+          "with": {}
+        },
+        "idx_transacoes_data_vencimento": {
+          "name": "idx_transacoes_data_vencimento",
+          "columns": [
+            {
+              "expression": "data_vencimento",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "date_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(data_vencimento IS NOT NULL)",
+          "with": {}
+        },
+        "idx_transacoes_metodo": {
+          "name": "idx_transacoes_metodo",
+          "columns": [
+            {
+              "expression": "metodo_pagamento_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(metodo_pagamento_id IS NOT NULL)",
+          "with": {}
+        },
+        "idx_transacoes_paciente": {
+          "name": "idx_transacoes_paciente",
+          "columns": [
+            {
+              "expression": "paciente_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "uuid_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(paciente_id IS NOT NULL)",
+          "with": {}
+        },
+        "idx_transacoes_parcelas": {
+          "name": "idx_transacoes_parcelas",
+          "columns": [
+            {
+              "expression": "total_parcelas",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "where": "(total_parcelas > 1)",
+          "with": {}
+        },
+        "idx_transacoes_status": {
+          "name": "idx_transacoes_status",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "enum_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "transacoes_atualizado_por_id_fkey": {
+          "name": "transacoes_atualizado_por_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "atualizado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "transacoes_cartao_id_fkey": {
+          "name": "transacoes_cartao_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "cartoes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "cartao_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "transacoes_clinica_id_fkey": {
+          "name": "transacoes_clinica_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "clinicas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "clinica_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "transacoes_consulta_id_fkey": {
+          "name": "transacoes_consulta_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "consultas",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "consulta_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "transacoes_conta_bancaria_id_fkey": {
+          "name": "transacoes_conta_bancaria_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "contas_bancarias",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "conta_bancaria_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transacoes_conta_destino_id_fkey": {
+          "name": "transacoes_conta_destino_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "contas_bancarias",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "conta_destino_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "transacoes_conta_origem_id_fkey": {
+          "name": "transacoes_conta_origem_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "contas_bancarias",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "conta_origem_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "transacoes_criado_por_id_fkey": {
+          "name": "transacoes_criado_por_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "usuarios",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "criado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "transacoes_fatura_cartao_id_fkey": {
+          "name": "transacoes_fatura_cartao_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "faturas_cartao",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "fatura_cartao_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transacoes_metodo_cobranca_id_fkey": {
+          "name": "transacoes_metodo_cobranca_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "metodos_cobranca",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "metodo_cobranca_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transacoes_metodo_pagamento_id_fkey": {
+          "name": "transacoes_metodo_pagamento_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "metodos_pagamento",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "metodo_pagamento_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "transacoes_paciente_id_fkey": {
+          "name": "transacoes_paciente_id_fkey",
+          "tableFrom": "transacoes",
+          "tableTo": "pacientes",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "paciente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.appointment_status": {
+      "name": "appointment_status",
+      "values": [
+        "agendado",
+        "confirmado",
+        "em_andamento",
+        "concluido",
+        "cancelado",
+        "nao_compareceu"
+      ],
+      "schema": "public"
+    },
+    "public.genero": {
+      "name": "genero",
+      "values": [
+        "masculino",
+        "feminino",
+        "outro"
+      ],
+      "schema": "public"
+    },
+    "public.record_type": {
+      "name": "record_type",
+      "values": [
+        "anamnesia",
+        "evolução",
+        "prescrição",
+        "certificado",
+        "referência"
+      ],
+      "schema": "public"
+    },
+    "public.tipo_cartao": {
+      "name": "tipo_cartao",
+      "values": [
+        "credito",
+        "debito"
+      ],
+      "schema": "public"
+    },
+    "public.transaction_status": {
+      "name": "transaction_status",
+      "values": [
+        "pendente",
+        "pago",
+        "cancelado",
+        "estornado"
+      ],
+      "schema": "public"
+    },
+    "public.transaction_type": {
+      "name": "transaction_type",
+      "values": [
+        "receita",
+        "despesa",
+        "transferencia"
+      ],
+      "schema": "public"
+    },
+    "public.user_role": {
+      "name": "user_role",
+      "values": [
+        "admin",
+        "dentista",
+        "assistente",
+        "recepcionista"
+      ],
+      "schema": "public"
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {
+    "public.vw_fluxo_caixa_clinicas": {
+      "name": "vw_fluxo_caixa_clinicas",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinica_nome": {
+          "name": "clinica_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entradas_periodo": {
+          "name": "entradas_periodo",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "saidas_periodo": {
+          "name": "saidas_periodo",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "saldo_atual": {
+          "name": "saldo_atual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_a_receber": {
+          "name": "total_a_receber",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_a_pagar": {
+          "name": "total_a_pagar",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_inadimplencia": {
+          "name": "total_inadimplencia",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT id, nome AS clinica_nome, ( SELECT COALESCE(sum(cr.valor_pago), 0::numeric) AS \"coalesce\" FROM contas_receber cr WHERE cr.clinica_id = c.id AND cr.status = 'pago'::text AND cr.data_pagamento IS NOT NULL) AS entradas_periodo, ( SELECT COALESCE(sum(cp.valor_pago), 0::numeric) AS \"coalesce\" FROM contas_pagar cp WHERE cp.clinica_id = c.id AND cp.status = 'pago'::text AND cp.data_pagamento IS NOT NULL) AS saidas_periodo, 0 AS saldo_atual, ( SELECT COALESCE(sum(cr.valor_total - cr.valor_pago), 0::numeric) AS \"coalesce\" FROM contas_receber cr WHERE cr.clinica_id = c.id AND (cr.status = ANY (ARRAY['pendente'::text, 'a_vencer'::text, 'vencido'::text]))) AS total_a_receber, ( SELECT COALESCE(sum(cp.valor_total - cp.valor_pago), 0::numeric) AS \"coalesce\" FROM contas_pagar cp WHERE cp.clinica_id = c.id AND (cp.status = ANY (ARRAY['pendente'::text, 'a_vencer'::text, 'vencido'::text]))) AS total_a_pagar, ( SELECT COALESCE(sum(cr.valor_total - cr.valor_pago), 0::numeric) AS \"coalesce\" FROM contas_receber cr WHERE cr.clinica_id = c.id AND cr.status = 'vencido'::text) AS total_inadimplencia FROM clinicas c",
+      "materialized": false
+    },
+    "public.vw_inadimplencia_pacientes": {
+      "name": "vw_inadimplencia_pacientes",
+      "schema": "public",
+      "columns": {
+        "paciente_id": {
+          "name": "paciente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paciente_nome": {
+          "name": "paciente_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "telefone": {
+          "name": "telefone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_devido": {
+          "name": "total_devido",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcelas_vencidas": {
+          "name": "parcelas_vencidas",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dias_atraso": {
+          "name": "dias_atraso",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ultimo_pagamento": {
+          "name": "ultimo_pagamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "faixa_atraso": {
+          "name": "faixa_atraso",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT p.id AS paciente_id, p.nome AS paciente_nome, p.telefone, p.email, COALESCE(sum(cr.valor_total - cr.valor_pago), 0::numeric) AS total_devido, count(cr.id) AS parcelas_vencidas, CURRENT_DATE - min(cr.data_vencimento) AS dias_atraso, max(cr.data_pagamento) AS ultimo_pagamento, CASE WHEN (CURRENT_DATE - min(cr.data_vencimento)) <= 30 THEN '1-30'::text WHEN (CURRENT_DATE - min(cr.data_vencimento)) <= 60 THEN '31-60'::text WHEN (CURRENT_DATE - min(cr.data_vencimento)) <= 90 THEN '61-90'::text ELSE '90+'::text END AS faixa_atraso, cr.clinica_id FROM pacientes p JOIN contas_receber cr ON p.id = cr.paciente_id WHERE cr.status = 'vencido'::text AND cr.valor_total > cr.valor_pago GROUP BY p.id, p.nome, p.telefone, p.email, cr.clinica_id",
+      "materialized": false
+    },
+    "public.vw_parcelas_resumo": {
+      "name": "vw_parcelas_resumo",
+      "schema": "public",
+      "columns": {
+        "transacao_id": {
+          "name": "transacao_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_bruto": {
+          "name": "valor_bruto",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "transaction_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_parcelas": {
+          "name": "total_parcelas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcelas_geradas": {
+          "name": "parcelas_geradas",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcelas_pagas": {
+          "name": "parcelas_pagas",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcelas_pendentes": {
+          "name": "parcelas_pendentes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcelas_vencidas": {
+          "name": "parcelas_vencidas",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_pago": {
+          "name": "valor_pago",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_pendente": {
+          "name": "valor_pendente",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "proxima_data_vencimento": {
+          "name": "proxima_data_vencimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT t.id AS transacao_id, t.clinica_id, t.descricao, t.valor_bruto, t.tipo, t.total_parcelas, count(p.id) AS parcelas_geradas, count(p.id) FILTER (WHERE p.status = 'pago'::text) AS parcelas_pagas, count(p.id) FILTER (WHERE p.status = 'pendente'::text) AS parcelas_pendentes, count(p.id) FILTER (WHERE p.status = 'vencido'::text) AS parcelas_vencidas, COALESCE(sum(p.valor) FILTER (WHERE p.status = 'pago'::text), 0::numeric) AS valor_pago, COALESCE(sum(p.valor) FILTER (WHERE p.status = ANY (ARRAY['pendente'::text, 'vencido'::text])), 0::numeric) AS valor_pendente, min(p.data_vencimento) FILTER (WHERE p.status = ANY (ARRAY['pendente'::text, 'vencido'::text])) AS proxima_data_vencimento FROM transacoes t LEFT JOIN parcelas p ON p.transacao_id = t.id GROUP BY t.id, t.clinica_id, t.descricao, t.valor_bruto, t.tipo, t.total_parcelas",
+      "materialized": false
+    },
+    "public.vw_receitas": {
+      "name": "vw_receitas",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "transaction_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_bruto": {
+          "name": "valor_bruto",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_liquido": {
+          "name": "valor_liquido",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_taxas": {
+          "name": "valor_taxas",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paciente_id": {
+          "name": "paciente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "consulta_id": {
+          "name": "consulta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fornecedor": {
+          "name": "fornecedor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plano_id": {
+          "name": "plano_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "autorizacao_id": {
+          "name": "autorizacao_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metodo_pagamento_id": {
+          "name": "metodo_pagamento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta_origem_id": {
+          "name": "conta_origem_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta_destino_id": {
+          "name": "conta_destino_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cartao_id": {
+          "name": "cartao_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_compra": {
+          "name": "data_compra",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_emissao": {
+          "name": "data_emissao",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_vencimento": {
+          "name": "data_vencimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_pagamento": {
+          "name": "data_pagamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_credito_prevista": {
+          "name": "data_credito_prevista",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_parcelas": {
+          "name": "total_parcelas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcela_atual": {
+          "name": "parcela_atual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_parcela": {
+          "name": "valor_parcela",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_primeira_parcela": {
+          "name": "data_primeira_parcela",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "transaction_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "origem_receita": {
+          "name": "origem_receita",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "centro_custo": {
+          "name": "centro_custo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo_documento": {
+          "name": "tipo_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "numero_documento": {
+          "name": "numero_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dados_convenio": {
+          "name": "dados_convenio",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anexos": {
+          "name": "anexos",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_por_id": {
+          "name": "criado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "atualizado_por_id": {
+          "name": "atualizado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria_nome": {
+          "name": "categoria_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria_cor": {
+          "name": "categoria_cor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plano_convenio_nome": {
+          "name": "plano_convenio_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT t.id, t.clinica_id, t.tipo, t.descricao, t.valor_bruto, t.valor_liquido, t.valor_taxas, t.paciente_id, t.consulta_id, t.fornecedor, t.plano_id, t.autorizacao_id, t.categoria, t.metodo_pagamento_id, t.conta_origem_id, t.conta_destino_id, t.cartao_id, t.data_compra, t.data_emissao, t.data_vencimento, t.data_pagamento, t.data_credito_prevista, t.total_parcelas, t.parcela_atual, t.valor_parcela, t.data_primeira_parcela, t.status, t.origem_receita, t.centro_custo, t.tipo_documento, t.numero_documento, t.dados_convenio, t.observacoes, t.anexos, t.criado_por_id, t.criado_em, t.atualizado_em, t.atualizado_por_id, cr.nome AS categoria_nome, cr.cor AS categoria_cor, pc.nome AS plano_convenio_nome FROM transacoes t LEFT JOIN categorias_receita cr ON t.categoria = cr.nome AND cr.clinica_id = t.clinica_id LEFT JOIN planos_convenio pc ON t.plano_id = pc.nome AND pc.clinica_id = t.clinica_id WHERE t.tipo = 'receita'::transaction_type ORDER BY t.data_emissao DESC, t.criado_em DESC",
+      "materialized": false
+    },
+    "public.vw_despesas": {
+      "name": "vw_despesas",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "clinica_id": {
+          "name": "clinica_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo": {
+          "name": "tipo",
+          "type": "transaction_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_bruto": {
+          "name": "valor_bruto",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_liquido": {
+          "name": "valor_liquido",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_taxas": {
+          "name": "valor_taxas",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paciente_id": {
+          "name": "paciente_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "consulta_id": {
+          "name": "consulta_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fornecedor": {
+          "name": "fornecedor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plano_id": {
+          "name": "plano_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "autorizacao_id": {
+          "name": "autorizacao_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metodo_pagamento_id": {
+          "name": "metodo_pagamento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta_origem_id": {
+          "name": "conta_origem_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conta_destino_id": {
+          "name": "conta_destino_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cartao_id": {
+          "name": "cartao_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_compra": {
+          "name": "data_compra",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_emissao": {
+          "name": "data_emissao",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_vencimento": {
+          "name": "data_vencimento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_pagamento": {
+          "name": "data_pagamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_credito_prevista": {
+          "name": "data_credito_prevista",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_parcelas": {
+          "name": "total_parcelas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parcela_atual": {
+          "name": "parcela_atual",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "valor_parcela": {
+          "name": "valor_parcela",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_primeira_parcela": {
+          "name": "data_primeira_parcela",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "transaction_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "origem_receita": {
+          "name": "origem_receita",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "centro_custo": {
+          "name": "centro_custo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo_documento": {
+          "name": "tipo_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "numero_documento": {
+          "name": "numero_documento",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dados_convenio": {
+          "name": "dados_convenio",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observacoes": {
+          "name": "observacoes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anexos": {
+          "name": "anexos",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_por_id": {
+          "name": "criado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "atualizado_por_id": {
+          "name": "atualizado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria_nome": {
+          "name": "categoria_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria_cor": {
+          "name": "categoria_cor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "centro_custo_nome": {
+          "name": "centro_custo_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "centro_custo_tipo": {
+          "name": "centro_custo_tipo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fornecedor_nome": {
+          "name": "fornecedor_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tipo_documento_nome": {
+          "name": "tipo_documento_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT t.id, t.clinica_id, t.tipo, t.descricao, t.valor_bruto, t.valor_liquido, t.valor_taxas, t.paciente_id, t.consulta_id, t.fornecedor, t.plano_id, t.autorizacao_id, t.categoria, t.metodo_pagamento_id, t.conta_origem_id, t.conta_destino_id, t.cartao_id, t.data_compra, t.data_emissao, t.data_vencimento, t.data_pagamento, t.data_credito_prevista, t.total_parcelas, t.parcela_atual, t.valor_parcela, t.data_primeira_parcela, t.status, t.origem_receita, t.centro_custo, t.tipo_documento, t.numero_documento, t.dados_convenio, t.observacoes, t.anexos, t.criado_por_id, t.criado_em, t.atualizado_em, t.atualizado_por_id, cd.nome AS categoria_nome, cd.cor AS categoria_cor, cc.nome AS centro_custo_nome, cc.tipo AS centro_custo_tipo, f.nome_fantasia AS fornecedor_nome, td.nome AS tipo_documento_nome FROM transacoes t LEFT JOIN categorias_despesa cd ON t.categoria = cd.nome AND cd.clinica_id = t.clinica_id LEFT JOIN centros_custo cc ON t.centro_custo = cc.nome AND cc.clinica_id = t.clinica_id LEFT JOIN fornecedores f ON t.fornecedor = f.nome_fantasia AND f.clinica_id = t.clinica_id LEFT JOIN tipos_documento td ON t.tipo_documento = td.nome AND td.clinica_id = t.clinica_id WHERE t.tipo = 'despesa'::transaction_type ORDER BY t.data_emissao DESC, t.criado_em DESC",
+      "materialized": false
+    },
+    "public.vw_fluxo_caixa": {
+      "name": "vw_fluxo_caixa",
+      "schema": "public",
+      "columns": {
+        "tipo": {
+          "name": "tipo",
+          "type": "transaction_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fluxo": {
+          "name": "fluxo",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_pagamento": {
+          "name": "data_pagamento",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "categoria": {
+          "name": "categoria",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metodo_pagamento_id": {
+          "name": "metodo_pagamento_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "transaction_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "descricao": {
+          "name": "descricao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "isExisting": false,
+      "definition": "SELECT tipo, CASE WHEN tipo = 'receita'::transaction_type THEN valor_liquido ELSE - valor_liquido END AS fluxo, data_pagamento, categoria, metodo_pagamento_id, status, descricao FROM transacoes WHERE data_pagamento IS NOT NULL ORDER BY data_pagamento DESC",
+      "materialized": false
+    }
+  },
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {
+      "convites": {
+        "columns": {
+          "data_expiracao": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "convites_fundador": {
+        "columns": {
+          "data_expiracao": {
+            "isDefaultAnExpression": true
+          }
+        }
+      },
+      "transacoes": {
+        "columns": {
+          "anexos": {
+            "isArray": true,
+            "dimensions": 1,
+            "rawType": "text"
+          }
+        }
+      },
+      "vw_receitas": {
+        "columns": {
+          "anexos": {
+            "isArray": true,
+            "dimensions": 0,
+            "rawType": "text"
+          }
+        }
+      },
+      "vw_despesas": {
+        "columns": {
+          "anexos": {
+            "isArray": true,
+            "dimensions": 0,
+            "rawType": "text"
+          }
+        }
+      }
+    }
+  }
+}

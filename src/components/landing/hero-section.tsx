@@ -39,9 +39,9 @@ export function HeroSection() {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-16">
-          <Link href="/cadastrar">
+          <Link href="/login">
             <Button size="lg" className="btn-premium h-14 px-8 text-lg w-full sm:w-auto rounded-full bg-blue-500 hover:bg-blue-600 border-none text-white shadow-lg shadow-blue-500/20">
-              Começar
+              Acessar Sistema
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>

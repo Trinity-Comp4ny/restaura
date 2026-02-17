@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Edit, Trash2, Target, TrendingUp, TrendingDown,
-  Search, Filter, MoreHorizontal, Eye, EyeOff
+  Search, Filter, Loader2
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,147 +14,126 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { NavigationBreadcrumb, BackButton } from '@/components/ui/navigation-breadcrumb'
-
-// Mock data - em produção viria do backend
-const mockCategoriasReceita = [
-  {
-    id: '1',
-    nome: 'Procedimentos Gerais',
-    descricao: 'Consultas e procedimentos básicos',
-    cor: '#3b82f6',
-    isPadrao: true,
-    ativa: true,
-    criadoEm: '2024-01-01',
-    totalTransacoes: 45,
-    valorTotal: 15420.50
-  },
-  {
-    id: '2',
-    nome: 'Ortodontia',
-    descricao: 'Tratamentos ortodônticos',
-    cor: '#10b981',
-    isPadrao: true,
-    ativa: true,
-    criadoEm: '2024-01-01',
-    totalTransacoes: 32,
-    valorTotal: 28900.00
-  },
-  {
-    id: '3',
-    nome: 'Implantes',
-    descricao: 'Procedimentos de implantação',
-    cor: '#f59e0b',
-    isPadrao: true,
-    ativa: true,
-    criadoEm: '2024-01-15',
-    totalTransacoes: 12,
-    valorTotal: 45000.00
-  }
-]
-
-const mockCategoriasDespesa = [
-  {
-    id: '1',
-    nome: 'Materiais',
-    descricao: 'Materiais odontológicos e insumos',
-    cor: '#ef4444',
-    isPadrao: true,
-    ativa: true,
-    criadoEm: '2024-01-01',
-    totalTransacoes: 28,
-    valorTotal: 8750.30
-  },
-  {
-    id: '2',
-    nome: 'Pessoal',
-    descricao: 'Salários e benefícios',
-    cor: '#8b5cf6',
-    isPadrao: true,
-    ativa: true,
-    criadoEm: '2024-01-01',
-    totalTransacoes: 12,
-    valorTotal: 15000.00
-  },
-  {
-    id: '3',
-    nome: 'Aluguel',
-    descricao: 'Aluguel do consultório',
-    cor: '#ec4899',
-    isPadrao: false,
-    ativa: true,
-    criadoEm: '2024-01-10',
-    totalTransacoes: 12,
-    valorTotal: 36000.00
-  }
-]
+import { useCategoriasReceita, useCategoriasDespesa, useCreateCategoria, useUpdateCategoria, useDeleteCategoria } from '@/hooks/use-categorias-financeiras'
+import { useUser, useClinica } from '@/hooks/use-user'
+import { toast } from 'sonner'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export default function CategoriasConfigPage() {
+  const { data: user } = useUser()
+  const { data: clinica } = useClinica()
+  const router = useRouter()
+  const clinicaId = user?.clinica_id
+
+  const { data: categoriasReceita, isLoading: isLoadingReceita } = useCategoriasReceita(clinicaId)
+  const { data: categoriasDespesa, isLoading: isLoadingDespesa } = useCategoriasDespesa(clinicaId)
+  const createCategoria = useCreateCategoria()
+  const updateCategoria = useUpdateCategoria()
+  const deleteCategoria = useDeleteCategoria()
+
   const [activeTab, setActiveTab] = useState('receitas')
   const [searchTerm, setSearchTerm] = useState('')
-  const [showInactive, setShowInactive] = useState(false)
   const [showNewDialog, setShowNewDialog] = useState(false)
   const [editingCategoria, setEditingCategoria] = useState<any>(null)
+  const [categoriaTipo, setCategoriaTipo] = useState<'receita' | 'despesa'>('receita')
   const [novaCategoria, setNovaCategoria] = useState({
     nome: '',
     descricao: '',
     cor: '#3b82f6',
-    isPadrao: false
+    is_padrao: false
   })
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
-  const categoriasReceita = mockCategoriasReceita.filter(c => 
-    showInactive || c.ativa
+  const categoriasReceitaFiltradas = (categoriasReceita || []).filter(c => 
+    c.ativa
   ).filter(c =>
     c.nome.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const categoriasDespesa = mockCategoriasDespesa.filter(c => 
-    showInactive || c.ativa
+  const categoriasDespesaFiltradas = (categoriasDespesa || []).filter(c => 
+    c.ativa
   ).filter(c =>
     c.nome.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleNewCategoria = (tipo: 'receita' | 'despesa') => {
+  const handleNewCategoria = (tipo?: 'receita' | 'despesa') => {
+    console.log('🔍 handleNewCategoria chamado - clinicaId:', clinicaId)
+    console.log('🔍 User data:', user)
+    
+    if (!clinicaId) {
+      console.error('❌ clinicaId não encontrado - User:', user)
+      toast.error('Erro: Usuário não vinculado a uma clínica. Por favor, faça login novamente.')
+      return
+    }
+    const tipoSelecionado = tipo || (activeTab === 'despesas' ? 'despesa' : 'receita')
+
+    setCategoriaTipo(tipoSelecionado)
     setEditingCategoria(null)
     setNovaCategoria({
       nome: '',
       descricao: '',
-      cor: tipo === 'receita' ? '#3b82f6' : '#ef4444',
-      isPadrao: false
+      cor: tipoSelecionado === 'receita' ? '#3b82f6' : '#ef4444',
+      is_padrao: false
     })
     setShowNewDialog(true)
   }
 
   const handleEditCategoria = (categoria: any) => {
+    setCategoriaTipo(categoria.tipo)
     setEditingCategoria(categoria)
     setNovaCategoria({
       nome: categoria.nome,
-      descricao: categoria.descricao,
+      descricao: categoria.descricao || '',
       cor: categoria.cor,
-      isPadrao: categoria.isPadrao
+      is_padrao: categoria.is_padrao
     })
     setShowNewDialog(true)
   }
 
   const handleSaveCategoria = () => {
-    // Em produção, salvar no backend
-    console.log('Salvando categoria:', novaCategoria)
-    setShowNewDialog(false)
-    setNovaCategoria({ nome: '', descricao: '', cor: '#3b82f6', isPadrao: false })
-  }
+    console.log('🔍 handleSaveCategoria chamado - clinicaId:', clinicaId)
+    
+    if (!clinicaId) {
+      console.error('❌ clinicaId não encontrado ao salvar categoria')
+      toast.error('Erro: Usuário não vinculado a uma clínica. Por favor, faça login novamente.')
+      return
+    }
+    if (!novaCategoria.nome) {
+      toast.error('Preencha o nome da categoria')
+      return
+    }
 
-  const handleToggleAtivo = (id: string) => {
-    // Em produção, atualizar no backend
-    console.log('Toggle ativo:', id)
+    const categoriaData = {
+      clinica_id: clinicaId,
+      nome: novaCategoria.nome,
+      descricao: novaCategoria.descricao,
+      cor: novaCategoria.cor,
+      tipo: categoriaTipo,
+      is_padrao: novaCategoria.is_padrao,
+      ativa: true
+    }
+
+    if (editingCategoria) {
+      updateCategoria.mutate({
+        id: editingCategoria.id,
+        ...categoriaData
+      })
+    } else {
+      createCategoria.mutate(categoriaData as any)
+    }
+
+    setShowNewDialog(false)
+    setNovaCategoria({ nome: '', descricao: '', cor: '#3b82f6', is_padrao: false })
   }
 
   const handleDeleteCategoria = (id: string) => {
-    // Em produção, deletar no backend
-    console.log('Delete categoria:', id)
+    deleteCategoria.mutate(id)
+    setConfirmDeleteId(null)
   }
 
   const coresPadrao = [
@@ -167,34 +147,41 @@ export default function CategoriasConfigPage() {
     { value: '#f97316', label: 'Laranja', class: 'bg-orange-500' }
   ]
 
+  if (isLoadingReceita || isLoadingDespesa) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-4">
-        <NavigationBreadcrumb
-          items={[
-            { label: 'Financeiro', href: '/configuracoes/financeiro' },
-            { label: 'Categorias', href: '/configuracoes/financeiro/categorias' }
-          ]}
-          current="/configuracoes/financeiro/categorias"
-        />
-        
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Categorias Financeiras</h1>
-            <p className="text-muted-foreground">
-              Organize suas receitas e despesas por categorias personalizadas
-            </p>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Categorias Financeiras</h1>
+              <p className="text-muted-foreground">
+                Organize suas receitas e despesas por categorias personalizadas
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={showInactive}
-                onCheckedChange={setShowInactive}
-              />
-              <span className="text-sm">Mostrar inativas</span>
-            </div>
-            <Button onClick={() => handleNewCategoria(activeTab as 'receita' | 'despesa')}>
+            <Button
+              onClick={() => handleNewCategoria()}
+              variant="default"
+              data-onboarding="nova-categoria"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Nova Categoria
             </Button>
@@ -210,7 +197,7 @@ export default function CategoriasConfigPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Categorias Ativas</p>
                 <p className="text-2xl font-bold">
-                  {categoriasReceita.filter(c => c.ativa).length + categoriasDespesa.filter(c => c.ativa).length}
+                  {categoriasReceitaFiltradas.filter(c => c.ativa).length + categoriasDespesaFiltradas.filter(c => c.ativa).length}
                 </p>
               </div>
               <Target className="h-8 w-8 text-blue-500" />
@@ -222,7 +209,7 @@ export default function CategoriasConfigPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Categorias Receita</p>
-                <p className="text-2xl font-bold">{categoriasReceita.filter(c => c.ativa).length}</p>
+                <p className="text-2xl font-bold">{categoriasReceitaFiltradas.filter(c => c.ativa).length}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
@@ -233,7 +220,7 @@ export default function CategoriasConfigPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Categorias Despesa</p>
-                <p className="text-2xl font-bold">{categoriasDespesa.filter(c => c.ativa).length}</p>
+                <p className="text-2xl font-bold">{categoriasDespesaFiltradas.filter(c => c.ativa).length}</p>
               </div>
               <TrendingDown className="h-8 w-8 text-red-500" />
             </div>
@@ -245,8 +232,8 @@ export default function CategoriasConfigPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Categorias Padrão</p>
                 <p className="text-2xl font-bold">
-                  {categoriasReceita.filter(c => c.isPadrao && c.ativa).length + 
-                   categoriasDespesa.filter(c => c.isPadrao && c.ativa).length}
+                  {categoriasReceitaFiltradas.filter(c => c.is_padrao && c.ativa).length + 
+                   categoriasDespesaFiltradas.filter(c => c.is_padrao && c.ativa).length}
                 </p>
               </div>
               <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -279,8 +266,17 @@ export default function CategoriasConfigPage() {
 
         {/* Categorias de Receita */}
         <TabsContent value="receitas" className="space-y-4">
-          <div className="grid gap-4">
-            {categoriasReceita.map((categoria) => (
+          {categoriasReceitaFiltradas.length === 0 ? (
+            <EmptyState
+              type="cartoes"
+              title="Nenhuma categoria de receita cadastrada"
+              description="Organize suas receitas por categorias personalizadas"
+              buttonText="Nova Categoria"
+              onAction={() => handleNewCategoria('receita')}
+            />
+          ) : (
+            <div className="grid gap-4">
+              {categoriasReceitaFiltradas.map((categoria) => (
               <Card key={categoria.id}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -292,7 +288,7 @@ export default function CategoriasConfigPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold">{categoria.nome}</h4>
-                          {categoria.isPadrao && (
+                          {categoria.is_padrao && (
                             <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
                               Padrão
                             </Badge>
@@ -305,73 +301,46 @@ export default function CategoriasConfigPage() {
                         </div>
                         <p className="text-sm text-muted-foreground">{categoria.descricao}</p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span>{categoria.totalTransacoes} transações</span>
-                          <span>•</span>
-                          <span>R$ {categoria.valorTotal.toLocaleString('pt-BR')}</span>
+                          <span>Criada em: {categoria.criado_em ? new Date(categoria.criado_em).toLocaleDateString('pt-BR') : '-'}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm" onClick={() => handleEditCategoria(categoria)}>
                         <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleToggleAtivo(categoria.id)}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => setConfirmDeleteId(categoria.id)}
                       >
-                        {categoria.ativa ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Excluir</span>
                       </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditCategoria(categoria)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleToggleAtivo(categoria.id)}>
-                            {categoria.ativa ? (
-                              <>
-                                <EyeOff className="mr-2 h-4 w-4" />
-                                Desativar
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Ativar
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteCategoria(categoria.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         {/* Categorias de Despesa */}
         <TabsContent value="despesas" className="space-y-4">
-          <div className="grid gap-4">
-            {categoriasDespesa.map((categoria) => (
+          {categoriasDespesaFiltradas.length === 0 ? (
+            <EmptyState
+              type="cartoes"
+              title="Nenhuma categoria de despesa cadastrada"
+              description="Organize suas despesas por categorias personalizadas"
+              buttonText="Nova Categoria"
+              onAction={() => handleNewCategoria('despesa')}
+            />
+          ) : (
+            <div className="grid gap-4">
+              {categoriasDespesaFiltradas.map((categoria) => (
               <Card key={categoria.id}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -383,7 +352,7 @@ export default function CategoriasConfigPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="font-semibold">{categoria.nome}</h4>
-                          {categoria.isPadrao && (
+                          {categoria.is_padrao && (
                             <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
                               Padrão
                             </Badge>
@@ -396,67 +365,31 @@ export default function CategoriasConfigPage() {
                         </div>
                         <p className="text-sm text-muted-foreground">{categoria.descricao}</p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span>{categoria.totalTransacoes} transações</span>
-                          <span>•</span>
-                          <span>R$ {categoria.valorTotal.toLocaleString('pt-BR')}</span>
+                          <span>Criada em: {categoria.criado_em ? new Date(categoria.criado_em).toLocaleDateString('pt-BR') : '-'}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm" onClick={() => handleEditCategoria(categoria)}>
                         <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleToggleAtivo(categoria.id)}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => setConfirmDeleteId(categoria.id)}
                       >
-                        {categoria.ativa ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Excluir</span>
                       </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditCategoria(categoria)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleToggleAtivo(categoria.id)}>
-                            {categoria.ativa ? (
-                              <>
-                                <EyeOff className="mr-2 h-4 w-4" />
-                                Desativar
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Ativar
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteCategoria(categoria.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -466,17 +399,17 @@ export default function CategoriasConfigPage() {
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className={`w-4 h-4 rounded-full ${
-                activeTab === 'receitas' ? 'bg-blue-500' : 'bg-red-500'
+                categoriaTipo === 'receita' ? 'bg-blue-500' : 'bg-red-500'
               }`} />
               <div>
                 <DialogTitle className="flex items-center gap-2">
                   {editingCategoria 
-                    ? `Editar ${activeTab === 'receitas' ? 'Categoria de Receita' : 'Categoria de Despesa'}`
-                    : `Nova ${activeTab === 'receitas' ? 'Categoria de Receita' : 'Categoria de Despesa'}`
+                    ? `Editar ${categoriaTipo === 'receita' ? 'Categoria de Receita' : 'Categoria de Despesa'}`
+                    : `Nova ${categoriaTipo === 'receita' ? 'Categoria de Receita' : 'Categoria de Despesa'}`
                   }
                 </DialogTitle>
                 <DialogDescription>
-                  {activeTab === 'receitas' 
+                  {categoriaTipo === 'receita' 
                     ? 'Configure uma categoria para organizar suas receitas'
                     : 'Configure uma categoria para organizar suas despesas'
                   }
@@ -486,19 +419,38 @@ export default function CategoriasConfigPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
+              <Label>Tipo de Categoria</Label>
+              <Select value={categoriaTipo} onValueChange={(value) => {
+                const tipo = value as 'receita' | 'despesa'
+                setCategoriaTipo(tipo)
+                setNovaCategoria({
+                  ...novaCategoria,
+                  cor: tipo === 'receita' ? '#3b82f6' : '#ef4444'
+                })
+              }}>
+                <SelectTrigger className="capitalize">
+                  <SelectValue placeholder="Tipo de categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="receita">Receita</SelectItem>
+                  <SelectItem value="despesa">Despesa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label>Nome da Categoria</Label>
               <Input
-                placeholder={activeTab === 'receitas' ? 'Ex: Procedimentos Gerais' : 'Ex: Materiais'}
+                placeholder={categoriaTipo === 'receita' ? 'Ex: Procedimentos Gerais' : 'Ex: Materiais'}
                 value={novaCategoria.nome}
                 onChange={(e) => setNovaCategoria({ ...novaCategoria, nome: e.target.value })}
               />
             </div>
             <div>
-              <Label>Descrição</Label>
+              <Label>Descrição (opcional)</Label>
               <Textarea
-                placeholder={activeTab === 'receitas' 
-                  ? 'Descreva o tipo de receitas nesta categoria' 
-                  : 'Descreva o tipo de despesas nesta categoria'
+                placeholder={categoriaTipo === 'receita' 
+                  ? 'Descreva o tipo de receitas nesta categoria (opcional)' 
+                  : 'Descreva o tipo de despesas nesta categoria (opcional)'
                 }
                 value={novaCategoria.descricao}
                 onChange={(e) => setNovaCategoria({ ...novaCategoria, descricao: e.target.value })}
@@ -529,22 +481,45 @@ export default function CategoriasConfigPage() {
                 </p>
               </div>
               <Switch
-                checked={novaCategoria.isPadrao}
-                onCheckedChange={(checked) => setNovaCategoria({ ...novaCategoria, isPadrao: checked })}
+                checked={novaCategoria.is_padrao}
+                onCheckedChange={(checked) => setNovaCategoria({ ...novaCategoria, is_padrao: checked })}
               />
             </div>
           </div>
           <DialogFooter>
-            <BackButton href="/configuracoes/financeiro/categorias" label="Cancelar" />
+            <Button variant="outline" onClick={() => setShowNewDialog(false)}>
+              Cancelar
+            </Button>
             <Button onClick={handleSaveCategoria}>
               {editingCategoria 
-                ? `Atualizar ${activeTab === 'receitas' ? 'Receita' : 'Despesa'}`
-                : `Criar ${activeTab === 'receitas' ? 'Receita' : 'Despesa'}`
+                ? `Atualizar ${categoriaTipo === 'receita' ? 'Receita' : 'Despesa'}`
+                : `Criar ${categoriaTipo === 'receita' ? 'Receita' : 'Despesa'}`
               }
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmar exclusão */}
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir categoria?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. A categoria será desativada e não aparecerá mais nas listas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmDeleteId(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => confirmDeleteId && handleDeleteCategoria(confirmDeleteId)}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

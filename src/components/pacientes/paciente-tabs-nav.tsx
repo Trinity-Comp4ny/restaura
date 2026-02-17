@@ -14,7 +14,7 @@ import { TreatmentsTab } from '@/components/pacientes/tabs/treatments-tab'
 import { FinancialTab } from '@/components/pacientes/tabs/financial-tab'
 import { DocumentsTab } from '@/components/pacientes/tabs/documents-tab'
 import { getInitials, formatPhone, formatDate } from '@/lib/utils'
-import { useMockPacientes } from '@/lib/api-mock-client'
+import { usePaciente } from '@/hooks/use-pacientes'
 
 interface PacienteTabsNavProps {
   pacienteId: string
@@ -24,9 +24,7 @@ interface PacienteTabsNavProps {
 export function PacienteTabsNav({ pacienteId, ativoTabId }: PacienteTabsNavProps) {
   const router = useRouter()
 
-  // Buscar dados do paciente via API
-  const { data: mockData } = useMockPacientes() as { data?: { data: any[] } }
-  const paciente = mockData?.data?.find((p: any) => p.id === pacienteId)
+  const { data: paciente } = usePaciente(pacienteId)
 
   // Calcular idade
   const calcularIdade = (birthDate: string) => {

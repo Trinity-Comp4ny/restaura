@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -32,10 +33,7 @@ export function useTratamentos(pacienteId?: string) {
 
       const { data, error } = await query
 
-      if (error) {
-        console.warn('Erro ao buscar tratamentos:', error)
-        return []
-      }
+      if (error) return []
 
       return data
     },
@@ -78,10 +76,10 @@ export function useCreateTratamento() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (tratamento: any) => {
-      const { data, error } = await supabase
+    mutationFn: async (tratamento: Record<string, unknown>) => {
+      const { data, error } = await (supabase as any)
         .from('tratamentos')
-        .insert(tratamento as unknown as never)
+        .insert(tratamento)
         .select()
         .single()
 
@@ -92,8 +90,7 @@ export function useCreateTratamento() {
       queryClient.invalidateQueries({ queryKey: ['tratamentos'] })
       toast.success('Tratamento criado com sucesso!')
     },
-    onError: (error) => {
-      console.error('Erro ao criar tratamento:', error)
+    onError: () => {
       toast.error('Erro ao criar tratamento')
     },
   })
@@ -103,10 +100,10 @@ export function useUpdateTratamento() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...tratamento }: any) => {
-      const { data, error } = await supabase
+    mutationFn: async ({ id, ...tratamento }: { id: string } & Record<string, unknown>) => {
+      const { data, error } = await (supabase as any)
         .from('tratamentos')
-        .update(tratamento as unknown as never)
+        .update(tratamento)
         .eq('id', id)
         .select()
         .single()
@@ -119,8 +116,7 @@ export function useUpdateTratamento() {
       queryClient.invalidateQueries({ queryKey: ['tratamento', variables.id] })
       toast.success('Tratamento atualizado com sucesso!')
     },
-    onError: (error) => {
-      console.error('Erro ao atualizar tratamento:', error)
+    onError: () => {
       toast.error('Erro ao atualizar tratamento')
     },
   })
@@ -131,7 +127,7 @@ export function useDeleteTratamento() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('tratamentos')
         .delete()
         .eq('id', id)
@@ -142,8 +138,7 @@ export function useDeleteTratamento() {
       queryClient.invalidateQueries({ queryKey: ['tratamentos'] })
       toast.success('Tratamento removido com sucesso!')
     },
-    onError: (error) => {
-      console.error('Erro ao remover tratamento:', error)
+    onError: () => {
       toast.error('Erro ao remover tratamento')
     },
   })
@@ -154,10 +149,10 @@ export function useCreateTratamentoProcedimento() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (procedimento: any) => {
-      const { data, error } = await supabase
+    mutationFn: async (procedimento: Record<string, unknown>) => {
+      const { data, error } = await (supabase as any)
         .from('tratamento_procedimentos')
-        .insert(procedimento as unknown as never)
+        .insert(procedimento)
         .select()
         .single()
 
@@ -168,8 +163,7 @@ export function useCreateTratamentoProcedimento() {
       queryClient.invalidateQueries({ queryKey: ['tratamentos'] })
       toast.success('Procedimento adicionado com sucesso!')
     },
-    onError: (error) => {
-      console.error('Erro ao adicionar procedimento:', error)
+    onError: () => {
       toast.error('Erro ao adicionar procedimento')
     },
   })
@@ -179,10 +173,10 @@ export function useUpdateTratamentoProcedimento() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...procedimento }: any) => {
-      const { data, error } = await supabase
+    mutationFn: async ({ id, ...procedimento }: { id: string } & Record<string, unknown>) => {
+      const { data, error } = await (supabase as any)
         .from('tratamento_procedimentos')
-        .update(procedimento as unknown as never)
+        .update(procedimento)
         .eq('id', id)
         .select()
         .single()
@@ -194,8 +188,7 @@ export function useUpdateTratamentoProcedimento() {
       queryClient.invalidateQueries({ queryKey: ['tratamentos'] })
       toast.success('Procedimento atualizado com sucesso!')
     },
-    onError: (error) => {
-      console.error('Erro ao atualizar procedimento:', error)
+    onError: () => {
       toast.error('Erro ao atualizar procedimento')
     },
   })
@@ -206,7 +199,7 @@ export function useDeleteTratamentoProcedimento() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('tratamento_procedimentos')
         .delete()
         .eq('id', id)
@@ -217,8 +210,7 @@ export function useDeleteTratamentoProcedimento() {
       queryClient.invalidateQueries({ queryKey: ['tratamentos'] })
       toast.success('Procedimento removido com sucesso!')
     },
-    onError: (error) => {
-      console.error('Erro ao remover procedimento:', error)
+    onError: () => {
       toast.error('Erro ao remover procedimento')
     },
   })

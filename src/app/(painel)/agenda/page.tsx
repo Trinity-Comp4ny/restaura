@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Calendar as CalendarIcon, List, User, Phone, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, MoreVertical } from 'lucide-react'
+import { Plus, Search, Filter, Calendar as CalendarIcon, Clock, User, Phone, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, MoreVertical, List } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+
+import { useDocumentTitle } from '@/hooks/use-document-title'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -155,6 +157,7 @@ const formattedDate = new Date().toLocaleDateString('pt-BR', {
 }).replace(/^\w/, (c) => c.toUpperCase()).replace(/,\s\d+\sde\s(\w+)/, (match, month) => match.replace(month, month.charAt(0).toUpperCase() + month.slice(1)))
 
 export default function AppointmentsPage() {
+  useDocumentTitle('Agenda')
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)

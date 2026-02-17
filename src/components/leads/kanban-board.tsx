@@ -20,14 +20,14 @@ import ConvertToPatientModal from '@/components/ui/convert-to-patient-modal'
 interface Lead {
   id: string
   nome: string
-  email: string
-  telefone: string
+  email?: string
+  telefone?: string
   source: string
   status: string
-  value: number
-  createdAt: string
-  lastContact: string
-  observacoes: string
+  value?: number
+  created_at?: string
+  updated_at?: string
+  observacoes?: string
   isPatient?: boolean // Nova propriedade para identificar pacientes
 }
 
@@ -255,7 +255,7 @@ export default function KanbanBoard({ leads, onLeadClick, onStatusChange, onLead
             <div className="text-2xl font-bold">
               R$ {leads
                 .filter(lead => lead.status !== 'perdido')
-                .reduce((sum, lead) => sum + lead.value, 0)
+                .reduce((sum, lead) => sum + (lead.value || 0), 0)
                 .toLocaleString('pt-BR')}
             </div>
             <p className="text-xs text-muted-foreground">Potencial ativo</p>
@@ -378,7 +378,7 @@ export default function KanbanBoard({ leads, onLeadClick, onStatusChange, onLead
                         
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           <Phone className="h-3 w-3" />
-                          <span>{formatPhone(lead.telefone)}</span>
+                          <span>{lead.telefone ? formatPhone(lead.telefone) : ''}</span>
                         </div>
                         
                         <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -388,7 +388,7 @@ export default function KanbanBoard({ leads, onLeadClick, onStatusChange, onLead
                         
                         <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                           <span className="text-xs font-semibold text-green-600">
-                            R$ {lead.value.toLocaleString('pt-BR')}
+                            R$ {(lead.value || 0).toLocaleString('pt-BR')}
                           </span>
                           <div className="flex items-center gap-1">
                             {lead.isPatient && (

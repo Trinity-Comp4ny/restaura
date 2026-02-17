@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { getInitials, formatPhone, formatDate, formatTime } from '@/lib/utils'
-import { useMockPacientes } from '@/lib/api-mock-client'
+import { usePaciente } from '@/hooks/use-pacientes'
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_COLORS } from '@/constants'
 
 interface OverviewTabProps {
@@ -16,8 +16,7 @@ interface OverviewTabProps {
 
 export function OverviewTab({ pacienteId }: OverviewTabProps) {
   const router = useRouter()
-  const { data: mockData } = useMockPacientes() as { data?: { data: any[] } }
-  const paciente = mockData?.data?.find((p: any) => p.id === pacienteId)
+  const { data: paciente } = usePaciente(pacienteId)
 
   if (!paciente) {
     return (

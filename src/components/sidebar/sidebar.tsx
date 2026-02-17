@@ -48,6 +48,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { supabase } from '@/lib/supabase/client'
+import { useUser } from '@/hooks/use-user'
 
 const menuItems = [
   {
@@ -59,11 +60,13 @@ const menuItems = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
+    disabled: true,
   },
   {
     title: 'Pacientes',
     href: '/pacientes',
     icon: Users,
+    disabled: true,
   },
   {
     title: 'Agenda',
@@ -93,11 +96,28 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const { data: user, isLoading: userLoading } = useUser()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+
+  // Funções auxiliares para dados do usuário
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const getDisplayName = () => {
+    if (user?.nome) return user.nome
+    if (user?.email) return user.email.split('@')[0]
+    return 'Usuário'
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -153,14 +173,15 @@ export function Sidebar() {
       opacity: 1, 
       x: 0, 
       transition: {
-        delay: 0.05,
-        duration: 0.2,
+        delay: 0.01, // Reduzido de 0.05 para 0.01
+        duration: 0.1, // Reduzido de 0.2 para 0.1
         ease: easeOut
       }
     }
   }
 
-  if (!mounted) return null
+  // Renderizar imediatamente sem esperar mounted state
+  // if (!mounted) return null
 
   return (
     <motion.aside
@@ -177,7 +198,7 @@ export function Sidebar() {
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.1 }}
           className="flex h-16 items-center justify-between px-3"
         >
           <AnimatePresence mode="wait">
@@ -186,7 +207,7 @@ export function Sidebar() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.1 }}
                 className="flex items-center space-x-2"
               >
                 <Link href="/home" className="group flex items-center space-x-2">
@@ -242,8 +263,8 @@ export function Sidebar() {
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto scrollbar-thin">
           <AnimatePresence>
             {menuItems.map((item, index) => {
-              const isActive = pathname === item.href || 
-    (item.href === '/agenda' && pathname.startsWith('/pacientes/') && document.referrer.includes('/agenda'))
+              const isActive = (pathname || '') === item.href || 
+    (item.href === '/agenda' && (pathname || '').startsWith('/pacientes/') && document.referrer.includes('/agenda'))
               const isHovered = hoveredItem === item.href
               const isDisabled = item.disabled
               
@@ -353,7 +374,7 @@ export function Sidebar() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
+          transition={{ delay: 0.05, duration: 0.1 }}
           className="p-3"
         >
           <AnimatePresence mode="wait">
@@ -362,21 +383,22 @@ export function Sidebar() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.1 }}
                 className="space-y-3"
               >
                 <div className="flex items-center justify-between p-0 rounded-lg">
                   <div className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/50 rounded-md p-1 transition-colors duration-200"
                        onClick={handleProfile}>
                     <Avatar className="h-7 w-7">
-                      <AvatarImage src="/avatars/user.jpg" />
+                      <AvatarImage src={user?.url_avatar || "/avatars/user.jpg"} />
                       <AvatarFallback className="bg-sidebar-primary text-white text-xs font-medium">
-                        DR
+                        {userLoading ? '...' : getUserInitials(getDisplayName())}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-sidebar-foreground truncate">Dr. Silva</p>
-                      <p className="text-xs text-sidebar-foreground/60 truncate">Premium</p>
+                      <p className="text-xs font-medium text-sidebar-foreground truncate">
+                        {userLoading ? 'Carregando...' : getDisplayName()}
+                      </p>
                     </div>
                   </div>
                   
@@ -398,20 +420,6 @@ export function Sidebar() {
                       >
                         <User className="h-4 w-4 transition-colors duration-200 group-hover:text-sidebar-primary" />
                         <span className="font-medium">Perfil</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => router.push('/configuracoes/multi-clinicas')} 
-                        className="group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent"
-                      >
-                        <Building2 className="h-4 w-4 transition-colors duration-200 group-hover:text-sidebar-primary" />
-                        <span className="font-medium">Clínicas</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => router.push('/configuracoes/equipe')} 
-                        className="group relative flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent"
-                      >
-                        <Users2 className="h-4 w-4 transition-colors duration-200 group-hover:text-sidebar-primary" />
-                        <span className="font-medium">Equipe</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={handleSettings} 
@@ -442,9 +450,9 @@ export function Sidebar() {
                 className="flex flex-col items-center gap-2"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/avatars/user.jpg" />
+                  <AvatarImage src={user?.url_avatar || "/avatars/user.jpg"} />
                   <AvatarFallback className="bg-sidebar-primary text-white text-sm font-medium">
-                    DR
+                    {userLoading ? '...' : getUserInitials(getDisplayName())}
                   </AvatarFallback>
                 </Avatar>
                 

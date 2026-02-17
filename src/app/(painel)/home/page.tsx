@@ -2,12 +2,42 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AlertCircle } from 'lucide-react'
 
 import { WelcomeHeader } from './components/welcome-header'
 import { QuickActions } from './components/quick-actions'
 import { NextAppointments } from './components/next-appointments'
-import { useHomeData } from './hooks/use-home-data'
+import { useHomeDataReal } from '@/hooks/use-home-data-real'
+import { useUser } from '@/hooks/use-user'
+
+// Quick actions estáticos para fallback
+const quickActions = [
+  {
+    id: 'novo-paciente',
+    title: 'Novo Paciente',
+    description: 'Cadastrar novo paciente',
+    icon: 'Users',
+    href: '/pacientes/novo',
+    color: 'blue',
+    disabled: true
+  },
+  {
+    id: 'nova-consulta',
+    title: 'Nova Consulta',
+    description: 'Agendar consulta',
+    icon: 'Calendar',
+    href: '/agenda/novo',
+    color: 'green',
+    disabled: true
+  },
+  {
+    id: 'financeiro',
+    title: 'Visualizar Financeiro',
+    description: 'Ver financeiro',
+    icon: 'DollarSign',
+    href: '/financeiro',
+    color: 'yellow'
+  }
+]
 
 function LoadingSkeleton() {
   return (
@@ -29,7 +59,15 @@ function LoadingSkeleton() {
 }
 
 export default function HomePage() {
-  const { data, loading, error } = useHomeData()
+  const { data: user } = useUser()
+  const { data, isLoading: loading, error } = useHomeDataReal(user?.clinica_id)
+  
+  // Função para obter nome de exibição do usuário
+  const getDisplayName = (user: any) => {
+    if (user?.nome) return user.nome
+    if (user?.email) return user.email.split('@')[0]
+    return 'Usuário'
+  }
 
   if (loading) {
     return <LoadingSkeleton />
@@ -40,8 +78,7 @@ export default function HomePage() {
       <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
-            <AlertCircle className="h-4 w-4" />
-            <span>{error}</span>
+            <span>{error instanceof Error ? error.message : 'Erro ao carregar dados'}</span>
           </div>
         </CardContent>
       </Card>
@@ -50,21 +87,20 @@ export default function HomePage() {
 
   if (!data) {
     return (
-      <Card className="border-muted-200 bg-muted/50">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <AlertCircle className="h-4 w-4" />
-            <span>Nenhum dado disponível no momento.</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        {/* Cabeçalho de boas-vindas */}
+        <WelcomeHeader userName={getDisplayName(user)} />
+
+        {/* Ações rápidas - sempre mostrar */}
+        <QuickActions actions={quickActions} />
+      </div>
     )
   }
 
   return (
     <div className="space-y-6">
       {/* Cabeçalho de boas-vindas */}
-      <WelcomeHeader />
+      <WelcomeHeader userName={getDisplayName(user)} />
 
       {/* Ações rápidas */}
       <QuickActions actions={data.quickActions} />

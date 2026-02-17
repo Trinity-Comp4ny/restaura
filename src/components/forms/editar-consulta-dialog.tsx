@@ -27,6 +27,8 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useUpdateConsulta } from '@/hooks/use-consultas'
 import { toast } from 'sonner'
+import { differenceInMinutes } from 'date-fns'
+import { getLocalISODate } from '@/lib/utils'
 
 const editarConsultaSchema = z.object({
   paciente_id: z.string().min(1, 'Paciente é obrigatório'),
@@ -117,7 +119,7 @@ export function EditarConsultaDialog({
           dentista_id: consulta.dentista_id || '',
           type: consulta.type || 'nova_consulta',
           procedimento_id: consulta.procedimento_id || '',
-          date: date.toISOString().split('T')[0],
+          date: getLocalISODate(date),
           time: startTime,
           horario_fim: endTime,
           status: consulta.status || 'agendado',

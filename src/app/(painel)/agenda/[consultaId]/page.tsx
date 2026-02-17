@@ -39,6 +39,8 @@ import { useProcedimentos } from '@/hooks/use-procedimentos'
 import { useConsumoConsulta } from '@/hooks/use-consumo-consulta'
 import { useMateriaisParaConsumo } from '@/hooks/use-estoque'
 import { MaterialConfirmationModal } from '@/components/estoque/MaterialConfirmationModal'
+import { useConsulta, useHistoricoConsultas } from '@/hooks/use-consulta'
+import { useUser } from '@/hooks/use-user'
 
 // Mock data - em produção viria do banco de dados
 const mockPatient = {
@@ -104,9 +106,12 @@ const mockAppointments = [
 export default function DetalheConsultaPage() {
   const params = useParams()
   const router = useRouter()
-  const consultaId = params.consultaId as string
+  const consultaId = (params?.consultaId as string) || ''
+  const { data: user } = useUser()
+  const clinicaId = user?.clinica_id
 
-  const [appointment] = useState(mockAppointments.find((apt) => apt.id === consultaId))
+  const { data: appointment, isLoading } = useConsulta(consultaId, user?.clinica_id)
+  const { data: historico } = useHistoricoConsultas(appointment?.paciente_id, user?.clinica_id)
   const [isEditing, setIsEditing] = useState(false)
   const [isRescheduling, setIsRescheduling] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
@@ -125,9 +130,9 @@ export default function DetalheConsultaPage() {
     pendingStatusChange?.procedureId || ''
   )
 
-  const { data: pacientes = [] } = usePacientes()
-  const { data: dentistas = [] } = useDentistas()
-  const { data: procedimentos = [] } = useProcedimentos()
+  const { data: pacientes = [] } = usePacientes(clinicaId)
+  const { data: dentistas = [] } = useDentistas(clinicaId)
+  const { data: procedimentos = [] } = useProcedimentos(clinicaId)
 
   if (!appointment) {
     return (
@@ -149,8 +154,8 @@ export default function DetalheConsultaPage() {
         appointmentId: consultaId,
         newStatus,
         procedureId: appointment.procedimento_id || '',
-        procedureName: appointment.procedure,
-        patientName: appointment.patient.nome,
+        procedureName: (appointment.procedimentos as any)?.nome || '',
+        patientName: (appointment.pacientes as any)?.nome || '',
       })
     } else {
       // TODO: Implementar atualização do status no banco de dados
@@ -221,35 +226,39 @@ export default function DetalheConsultaPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Data</label>
-                  <p className="font-medium">{formatDate(appointment.date)}</p>
+                  <p className="font-medium">{formatDate(appointment.data)}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Horário</label>
                   <p className="font-medium">
-                    {appointment.time} - {appointment.endTime}
+                    {appointment.horario_inicio?.substring(0, 5)} - {appointment.horario_fim?.substring(0, 5)}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Procedimento</label>
-                  <p className="font-medium">{appointment.procedure}</p>
+                  <p className="font-medium">{(appointment.procedimentos as any)?.nome}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Dentista</label>
-                  <p className="font-medium">{appointment.dentist}</p>
+                  <p className="font-medium">{(appointment.usuarios as any)?.nome}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Convênio</label>
-                  <p className="font-medium">{appointment.insurance}</p>
+                  <p className="font-medium">Particular</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Valor</label>
-                  <p className="font-medium">{formatCurrency(appointment.price)}</p>
+                  <p className="font-medium">{formatCurrency(appointment.preco || 0)}</p>
                 </div>
-              </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-muted-foreground">Descrição</label>
+                  <p className="font-medium">{appointment.observacoes || 'Sem observações'}</p>
+                </div>
 
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Descrição</label>
-                <p className="mt-1">{appointment.description}</p>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Observações</label>
+                  <p className="mt-1 text-sm bg-muted/50 p-3 rounded-lg">{appointment.observacoes}</p>
+                </div>
               </div>
 
               <div>
@@ -268,7 +277,7 @@ export default function DetalheConsultaPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {appointment.previousAppointments.map((prev) => (
+                {historico?.map((prev: any) => (
                   <Link
                     key={prev.id}
                     href={`/agenda/${prev.id}`}
@@ -276,8 +285,8 @@ export default function DetalheConsultaPage() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="text-sm">
-                        <p className="font-medium hover:text-primary transition-colors">{prev.procedure}</p>
-                        <p className="text-muted-foreground">{formatDate(prev.date)}</p>
+                        <p className="font-medium hover:text-primary transition-colors">{(prev.procedimentos as any)?.nome}</p>
+                        <p className="text-muted-foreground">{formatDate(prev.data)}</p>
                       </div>
                     </div>
                     <div
@@ -322,9 +331,9 @@ export default function DetalheConsultaPage() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-full justify-start ${APPOINTMENT_STATUS_CONFIG[appointment.status]?.bgColor} ${APPOINTMENT_STATUS_CONFIG[appointment.status]?.textColor}`}
+                    className={`w-full justify-start ${APPOINTMENT_STATUS_CONFIG[appointment.status as keyof typeof APPOINTMENT_STATUS_CONFIG]?.bgColor} ${APPOINTMENT_STATUS_CONFIG[appointment.status as keyof typeof APPOINTMENT_STATUS_CONFIG]?.textColor}`}
                   >
-                    <span className="ml-2">{APPOINTMENT_STATUS_CONFIG[appointment.status]?.label}</span>
+                    <span className="ml-2">{APPOINTMENT_STATUS_CONFIG[appointment.status as keyof typeof APPOINTMENT_STATUS_CONFIG]?.label}</span>
                     <ChevronDown className="ml-auto h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -369,17 +378,17 @@ export default function DetalheConsultaPage() {
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {getInitials(appointment.patient.nome)}
+                    {getInitials((appointment.pacientes as any)?.nome)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <Link
-                    href={`/pacientes/${appointment.patient.id}`}
+                    href={`/pacientes/${appointment.paciente_id}`}
                     className="font-medium hover:text-primary transition-colors"
                   >
-                    {appointment.patient.nome}
+                    {(appointment.pacientes as any)?.nome}
                   </Link>
-                  <p className="text-sm text-muted-foreground">{appointment.patient.email}</p>
+                  <p className="text-sm text-muted-foreground">{(appointment.pacientes as any)?.email}</p>
                 </div>
               </div>
 
@@ -388,13 +397,13 @@ export default function DetalheConsultaPage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{formatPhone(appointment.patient.telefone)}</span>
+                  <span>{formatPhone((appointment.pacientes as any)?.telefone)}</span>
                 </div>
                 <div className="text-sm">
-                  <span className="text-muted-foreground">CPF:</span> {appointment.patient.cpf}
+                  <span className="text-muted-foreground">CPF:</span> {(appointment.pacientes as any)?.cpf}
                 </div>
                 <div className="text-sm">
-                  <span className="text-muted-foreground">Nascimento:</span> {formatDate(appointment.patient.birthDate)}
+                  <span className="text-muted-foreground">Nascimento:</span> {formatDate((appointment.pacientes as any)?.data_nascimento)}
                 </div>
               </div>
             </CardContent>
