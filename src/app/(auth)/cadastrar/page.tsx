@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { edgeFunctions, callEdgeFunction } from '@/lib/edge-functions'
 
 const registerSchema = z
   .object({
@@ -45,9 +46,8 @@ export default function RegisterPage() {
   async function onSubmit(data: RegisterFormData) {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await callEdgeFunction(edgeFunctions.authRegister, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: data.name,
           email: data.email,
