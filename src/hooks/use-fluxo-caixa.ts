@@ -251,7 +251,7 @@ export function useFluxoCaixaDiario(
       const dataInicio = new Date(periodo.inicio + 'T00:00:00')
       const dataFim = new Date(periodo.fim + 'T00:00:00')
       const preenchido: FluxoDiario[] = []
-      let cursor = new Date(dataInicio)
+      const cursor = new Date(dataInicio)
       let saldoAcumulado = 0
 
       while (cursor <= dataFim) {
@@ -468,7 +468,7 @@ export function useProjecaoSemanal(
       }, {} as Record<string, string>)
 
       const semanasList: ProjecaoSemanal[] = []
-      let cursor = new Date(inicioRange)
+      const cursor = new Date(inicioRange)
       let idx = 0
       while (cursor <= fimRange) {
         const inicioSem = new Date(cursor)

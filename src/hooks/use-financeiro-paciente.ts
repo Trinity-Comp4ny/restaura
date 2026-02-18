@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
-// @ts-ignore - Supabase RLS typing issues
 const supabase = createClient()
 
 interface ResumoFinanceiro {

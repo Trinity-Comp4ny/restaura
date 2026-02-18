@@ -4,7 +4,6 @@ import { withSentryConfig } from '@sentry/nextjs'
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: false,
-  output: 'export',
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -86,7 +85,4 @@ export default withSentryConfig(nextConfig, {
   sourcemaps: {
     disable: process.env.NODE_ENV !== 'production',
   },
-  
-  // Tunnel para evitar ad-blockers
-  tunnelRoute: '/monitoring',
 })

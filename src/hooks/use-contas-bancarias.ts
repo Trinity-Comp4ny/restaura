@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
-// @ts-ignore - Supabase RLS typing issues
 const supabase = createClient()
 
 export interface ContaBancaria {
@@ -61,7 +60,7 @@ export function useCreateContaBancaria() {
     mutationFn: async (conta: Omit<ContaBancaria, 'id' | 'criado_em' | 'atualizado_em'>) => {
       const { data, error } = await supabase
         .from('contas_bancarias')
-        // @ts-ignore
+        // @ts-expect-error - Supabase RLS typing issues
         .insert([conta])
         .select()
         .single()
@@ -87,7 +86,7 @@ export function useUpdateContaBancaria() {
     mutationFn: async ({ id, ...conta }: Partial<ContaBancaria> & { id: string }) => {
       const { data, error } = await supabase
         .from('contas_bancarias')
-        // @ts-ignore
+        // @ts-expect-error - Supabase RLS typing issues
         .update(conta)
         .eq('id', id)
         .select()
@@ -114,7 +113,7 @@ export function useDeleteContaBancaria() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('contas_bancarias')
-        // @ts-ignore
+        // @ts-expect-error - Supabase RLS typing issues
         .update({ ativa: false })
         .eq('id', id)
 
