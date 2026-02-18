@@ -2,11 +2,8 @@ import type { NextConfig } from 'next'
 import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  typedRoutes: false,
   images: {
     remotePatterns: [
       {
@@ -18,7 +15,6 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    typedRoutes: false,
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-select'],
   },
   compiler: {
