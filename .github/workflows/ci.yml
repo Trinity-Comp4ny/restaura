@@ -29,7 +29,7 @@ jobs:
         run: npm run type-check
 
       - name: Lint
-        run: npm run lint -- --dir .
+        run: npm run lint
 
       - name: Format check
         run: npm run format:check
@@ -67,6 +67,6 @@ jobs:
           password: ${{ secrets.FTP_PASS }}
           port: ${{ secrets.FTP_PORT }}
           protocol: sftp
-          local-dir: dist/
+          local-dir: out/
           server-dir: public_html/
           dangerous-clean-slate: true
