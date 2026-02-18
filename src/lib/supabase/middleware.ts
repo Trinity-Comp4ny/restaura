@@ -47,9 +47,10 @@ export async function updateSession(request: NextRequest) {
   // Verificar se é um convite do Supabase Auth (URL com #access_token)
   const hash = request.nextUrl.hash
   if (hash && hash.includes('type=invite')) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const url = request.nextUrl.clone()
-    url.pathname = '/api/auth/invite-handler'
-    url.search = request.nextUrl.search
+    // Redirecionar para Edge Function
+    url.href = `${supabaseUrl}/functions/v1/invite-handler${request.nextUrl.search}`
     return NextResponse.redirect(url)
   }
 

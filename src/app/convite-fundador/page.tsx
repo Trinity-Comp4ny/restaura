@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Loader2, CheckCircle, XCircle, Mail, Building, User, Stethoscope, MapPin, Phone, FileText, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { edgeFunctions, callEdgeFunction } from '@/lib/edge-functions'
 
 function ConviteFundadorPageInner() {
   const router = useRouter()
@@ -85,9 +86,12 @@ function ConviteFundadorPageInner() {
   const validarConvite = async () => {
     console.log('🔍 Iniciando validação do convite...')
     try {
-      // Usar endpoint público que bypass RLS
-      console.log('📡 Fazendo requisição para:', `/api/public/convite-fundador?token=${token}`)
-      const response = await fetch(`/api/public/convite-fundador?token=${token}`)
+      // Usar Edge Function para validar convite
+      console.log('📡 Fazendo requisição para Edge Function invite-handler')
+      const response = await callEdgeFunction(
+        `${edgeFunctions.inviteHandler}?token=${token}&type=fundador`,
+        { method: 'GET' }
+      )
       console.log('📡 Resposta recebida:', response.status)
       const data = await response.json()
       console.log('📦 Dados recebidos:', data)
@@ -177,12 +181,9 @@ function ConviteFundadorPageInner() {
 
       const supabase = createSupabaseClient()
 
-      // 1. Criar usuário usando endpoint especial que contorna rate limit
-      const response = await fetch('/api/auth/create-founder', {
+      // 1. Criar usuário usando Edge Function
+      const response = await callEdgeFunction(edgeFunctions.authCreateFounder, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           email: convite.email,
           password: senha,
@@ -220,12 +221,9 @@ function ConviteFundadorPageInner() {
         return
       }
 
-      // 4. Aceitar convite e criar clínica via API
-      const acceptResponse = await fetch('/api/auth/accept-founder-invite', {
+      // 4. Aceitar convite e criar clínica via Edge Function
+      const acceptResponse = await callEdgeFunction(edgeFunctions.authAcceptFounderInvite, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           token,
           clinicaNome,

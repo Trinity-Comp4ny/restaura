@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Mail, CheckCircle, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { edgeFunctions, callEdgeFunction } from '@/lib/edge-functions'
 
 export default function AdminConvitesFundador() {
   const supabase = createClient()
@@ -22,13 +23,17 @@ export default function AdminConvitesFundador() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/admin/convites-fundador', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      const response = await callEdgeFunction(
+        edgeFunctions.adminConvitesFundador,
+        {
+          method: 'POST',
+          body: JSON.stringify({ email }),
         },
-        body: JSON.stringify({ email }),
-      })
+        token
+      )
 
       const data = await response.json()
 
@@ -50,7 +55,14 @@ export default function AdminConvitesFundador() {
   const loadConvites = async () => {
     setLoadingConvites(true)
     try {
-      const response = await fetch('/api/admin/convites-fundador')
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      const response = await callEdgeFunction(
+        edgeFunctions.adminConvitesFundador,
+        { method: 'GET' },
+        token
+      )
       const data = await response.json()
 
       if (response.ok) {
