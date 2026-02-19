@@ -8,11 +8,14 @@ import { useRouter } from 'next/navigation'
 interface EmptyDropdownProps {
   type: 'categoria' | 'metodo' | 'paciente' | 'conta'
   tipo?: 'receita' | 'despesa'
+  /** Quando true, desabilita o botão de cadastrar pacientes (ex.: no formulário de nova receita) */
+  disablePacienteButton?: boolean
 }
 
-export function EmptyDropdown({ type, tipo }: EmptyDropdownProps) {
+export function EmptyDropdown({ type, tipo, disablePacienteButton }: EmptyDropdownProps) {
   const router = useRouter()
-  
+  const isPacienteButtonDisabled = type === 'paciente' && disablePacienteButton
+
   const handleConfigRedirect = () => {
     if (type === 'categoria') {
       router.push('/configuracoes/financeiro/categorias')
@@ -69,6 +72,7 @@ export function EmptyDropdown({ type, tipo }: EmptyDropdownProps) {
         size="sm" 
         onClick={handleConfigRedirect}
         className="text-xs"
+        disabled={isPacienteButtonDisabled}
       >
         <Plus className="mr-1 h-3 w-3" />
         {type === 'categoria' ? 'Configurar Categorias' : 

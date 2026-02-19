@@ -1053,7 +1053,7 @@ export function ReceitasTab({ periodo, customRange }: ReceitasTabProps) {
                           <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
                         ))
                       ) : (
-                        <EmptyDropdown type="paciente" />
+                        <EmptyDropdown type="paciente" disablePacienteButton />
                       )}
                     </SelectContent>
                   </Select>
