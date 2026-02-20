@@ -11,7 +11,7 @@ interface EmailVariables {
 interface SendEmailOptions {
   to: string | string[]
   subject: string
-  template: 'invite-clinic' | 'invite-founder'
+  template: 'invite-clinic' | 'invite-clinic-table' | 'invite-founder' | 'reset-password'
   variables: EmailVariables
 }
 
@@ -21,9 +21,16 @@ export async function sendEmail({ to, subject, template, variables }: SendEmailO
     const templatePath = path.join(process.cwd(), 'src', 'templates', `${template}.html`)
     let html = fs.readFileSync(templatePath, 'utf8')
     
+    // Adicionar baseUrl às variáveis
+    const allVariables = {
+      baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://app.restaura.com.br',
+      ...variables
+    }
+    
     // Substituir variáveis no template
-    Object.entries(variables).forEach(([key, value]) => {
-      const regex = new RegExp(`{{${key}}}`, 'g')
+    Object.entries(allVariables).forEach(([key, value]) => {
+      // Allow spaces inside the moustache placeholders, e.g. {{ key }}
+      const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g')
       html = html.replace(regex, String(value || ''))
     })
     
@@ -57,7 +64,7 @@ export async function sendClinicInviteEmail(options: {
   return sendEmail({
     to: options.to,
     subject: `Convite para ${options.clinicName}`,
-    template: 'invite-clinic',
+    template: 'invite-clinic-table',
     variables: {
       clinicName: options.clinicName,
       inviterName: options.inviterName,
@@ -79,8 +86,22 @@ export async function sendFounderInviteEmail(options: {
     template: 'invite-founder',
     variables: {
       inviterName: options.inviterName,
-      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/convite-fundador/${options.inviteToken}`,
+      inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/convite-fundador?token=${options.inviteToken}`,
       subject: '🎉 Seja um Fundador no Restaura!'
+    }
+  })
+}
+
+export async function sendPasswordResetEmail(options: {
+  to: string
+  resetUrl: string
+}) {
+  return sendEmail({
+    to: options.to,
+    subject: 'Redefinir sua senha - Restaura',
+    template: 'reset-password',
+    variables: {
+      resetUrl: options.resetUrl,
     }
   })
 }

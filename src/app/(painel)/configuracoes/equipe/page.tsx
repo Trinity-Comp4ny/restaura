@@ -224,24 +224,25 @@ export default function EquipePage() {
 
     try {
       const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
 
-      const { data, error } = await supabase
-        .from('convites')
-        .insert({ email: email.toLowerCase(), papel, status: 'pendente' } as any)
-        .select()
-        .single()
+      const res = await fetch('/api/convites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ email: email.toLowerCase(), papel }),
+      })
 
-      if (error) {
-        if ((error as any)?.code === '23505') {
-          setConviteError('Já existe um convite pendente para este email')
-        } else {
-          throw error
-        }
+      const data = await res.json()
+
+      if (!res.ok) {
+        setConviteError(data.error || 'Erro ao enviar convite')
         return
       }
 
-      console.log('Convite criado:', data)
-      setConviteSuccess(`Convite enviado para ${email}`)
+      toast.success(`Convite enviado para ${email}`)
       setEmail('')
       setDialogOpen(false)
       await fetchConvites()
@@ -250,6 +251,34 @@ export default function EquipePage() {
       setConviteError('Erro ao enviar convite')
     } finally {
       setSending(false)
+    }
+  }
+
+  async function handleReenviarConvite(conviteId: string) {
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      const res = await fetch('/api/convites', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ conviteId }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error || 'Erro ao reenviar convite')
+        return
+      }
+
+      toast.success('Convite reenviado com sucesso')
+    } catch (err) {
+      console.error('Erro ao reenviar convite:', err)
+      toast.error('Erro ao reenviar convite')
     }
   }
 
@@ -591,9 +620,7 @@ export default function EquipePage() {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => {
-                                        console.log('Reenviar convite:', convite.id)
-                                      }}
+                                      onClick={() => handleReenviarConvite(convite.id)}
                                     >
                                       <RefreshCw className="w-3 h-3 mr-1" />
                                       Reenviar

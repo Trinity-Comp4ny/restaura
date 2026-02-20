@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/lib/supabase/client'
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -34,20 +33,15 @@ export default function ForgotPasswordPage() {
   async function onSubmit(data: FormData) {
     setIsLoading(true)
     try {
-      if (!supabase) {
-        toast.error('Supabase não configurado.')
-        return
-      }
-
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL
-      const redirectTo = appUrl ? `${appUrl}/reset-password` : undefined
-
-      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo,
+      const res = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.email }),
       })
 
-      if (error) {
-        toast.error(error.message)
+      if (!res.ok) {
+        const json = await res.json()
+        toast.error(json.error || 'Não foi possível enviar o link. Tente novamente.')
         return
       }
 

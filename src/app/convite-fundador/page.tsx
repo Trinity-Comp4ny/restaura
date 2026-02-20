@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Loader2, CheckCircle, XCircle, Mail, Building, User, Stethoscope, MapPin, Phone, FileText, Eye, EyeOff, ArrowLeft } from 'lucide-react'
-import { edgeFunctions, callEdgeFunction } from '@/lib/edge-functions'
 
 function ConviteFundadorPageInner() {
   const router = useRouter()
@@ -84,34 +83,36 @@ function ConviteFundadorPageInner() {
   }
 
   const validarConvite = async () => {
-    console.log('🔍 Iniciando validação do convite...')
     try {
-      // Usar Edge Function para validar convite
-      console.log('📡 Fazendo requisição para Edge Function invite-handler')
-      const response = await callEdgeFunction(
-        `${edgeFunctions.inviteHandler}?token=${token}&type=fundador`,
-        { method: 'GET' }
-      )
-      console.log('📡 Resposta recebida:', response.status)
-      const data = await response.json()
-      console.log('📦 Dados recebidos:', data)
+      const supabase = createSupabaseClient()
 
-      if (!response.ok) {
-        console.log('❌ Erro na resposta:', data.error)
-        setError(data.error || 'Convite não encontrado ou já utilizado')
+      // Mesma lógica do fluxo /convite: buscar direto do Supabase, filtrar pendente, validar expiração
+      const { data: conviteRaw, error: conviteError } = await supabase
+        .from('convites_fundador')
+        .select('*')
+        .eq('token', token!)
+        .eq('status', 'pendente')
+        .single()
+
+      const conviteData = conviteRaw as any
+      if (conviteError || !conviteData) {
+        setError('Convite não encontrado ou já utilizado')
         setLoading(false)
         return
       }
 
-      console.log('✅ Convite válido, atualizando estado...')
-      setConvite(data.convite)
-      setNome(data.convite.email.split('@')[0]) // Sugestão de nome baseada no email
-      
+      if (new Date(conviteData.data_expiracao) < new Date()) {
+        setError('Convite expirado')
+        setLoading(false)
+        return
+      }
+
+      setConvite(conviteData)
+      setNome(conviteData.email.split('@')[0]) // Sugestão de nome baseada no email
     } catch (err) {
       console.error('❌ Erro ao validar convite:', err)
       setError('Erro ao validar convite')
     } finally {
-      console.log('🏁 Finalizando validação, loading=false')
       setLoading(false)
     }
   }
@@ -181,54 +182,56 @@ function ConviteFundadorPageInner() {
 
       const supabase = createSupabaseClient()
 
-      // 1. Criar usuário usando Edge Function
-      const response = await callEdgeFunction(edgeFunctions.authCreateFounder, {
-        method: 'POST',
-        body: JSON.stringify({
-          email: convite.email,
-          password: senha,
-          nome: nome.trim(),
-          token: token
-        })
-      })
-
-      const authResult = await response.json()
-
-      if (!response.ok) {
-        setFormError(authResult.error || 'Erro ao criar conta')
-        setSubmitting(false)
-        return
-      }
-
-      // 2. Fazer login do usuário
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      // 1. Criar usuário via signUp (igual ao /convite que funciona)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: convite.email,
-        password: senha
+        password: senha,
+        options: {
+          data: {
+            nome: nome.trim(),
+            invite_token: token,
+            user_type: 'founder'
+          }
+        }
       })
-      
-      if (signInError) {
-        setFormError('Erro ao fazer login: ' + signInError.message)
-        setSubmitting(false)
-        return
+
+      if (authError) {
+        // Se já existe, tenta fazer login
+        if (authError.message.includes('already registered')) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: convite.email,
+            password: senha
+          })
+          if (signInError) {
+            setFormError('Usuário já existe. Verifique sua senha.')
+            setSubmitting(false)
+            return
+          }
+        } else {
+          setFormError('Erro ao criar conta: ' + authError.message)
+          setSubmitting(false)
+          return
+        }
       }
 
-      // 3. Obter ID do usuário
-      const userId = authResult.userId
-      
+      // 2. Obter userId (do signUp ou do login)
+      const userId = authData?.user?.id || (await supabase.auth.getUser()).data.user?.id
+
       if (!userId) {
         setFormError('Erro ao obter ID do usuário')
         setSubmitting(false)
         return
       }
 
-      // 4. Aceitar convite e criar clínica via Edge Function
-      const acceptResponse = await callEdgeFunction(edgeFunctions.authAcceptFounderInvite, {
+      // 3. Criar clínica e vincular usuário via API Route
+      const acceptResponse = await fetch('/api/convites-fundador-accept', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           token,
           clinicaNome,
           userId,
-          userName: nome
+          userName: nome.trim()
         })
       })
 
@@ -240,16 +243,14 @@ function ConviteFundadorPageInner() {
         return
       }
 
-      console.log('✅ Clínica criada com sucesso:', acceptData)
-      await supabase.auth.updateUser({
-        data: { nome: nome.trim() }
-      })
+      // 4. Atualizar nome no auth
+      await supabase.auth.updateUser({ data: { nome: nome.trim() } })
 
+      // Fazer logout para forçar login limpo
+      await supabase.auth.signOut()
       setSuccess(true)
-      
-      // Redirecionar após 3 segundos
       setTimeout(() => {
-        router.push('/home')
+        router.push('/login')
       }, 3000)
 
     } catch (err) {
@@ -292,17 +293,41 @@ function ConviteFundadorPageInner() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <Card className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-800/40 backdrop-blur-xl shadow-2xl overflow-hidden">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
-              <h2 className="text-lg font-semibold text-white mb-2">Clínica Criada!</h2>
-              <p className="text-slate-300 mb-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 px-4">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-24 -right-24 h-[440px] w-[440px] rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 h-[440px] w-[440px] rounded-full bg-green-500/15 blur-3xl" />
+        </div>
+        <Card className="relative w-full max-w-md rounded-2xl border border-white/10 bg-slate-800/40 backdrop-blur-xl shadow-2xl overflow-hidden">
+          <CardContent className="pt-10 pb-10">
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center mb-2">
+                <div className="h-20 w-20 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center">
+                  <CheckCircle className="h-10 w-10 text-green-400" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-white">Bem-vindo ao Restaura!</h2>
+              <p className="text-slate-300">
                 Sua clínica <span className="font-semibold text-blue-400">{clinicaNome}</span> foi criada com sucesso.
-                Você agora é o administrador e pode começar a usar o sistema.
               </p>
-              <p className="text-sm text-slate-400">Redirecionando para o painel em 3 segundos...</p>
+              <div className="bg-slate-900/50 border border-white/10 rounded-xl p-4 text-left space-y-2">
+                <div className="flex items-center gap-2 text-sm text-slate-300">
+                  <CheckCircle className="h-4 w-4 text-green-400 shrink-0" />
+                  <span>Conta criada</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-300">
+                  <CheckCircle className="h-4 w-4 text-green-400 shrink-0" />
+                  <span>Clínica configurada</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-300">
+                  <CheckCircle className="h-4 w-4 text-green-400 shrink-0" />
+                  <span>Você é o administrador</span>
+                </div>
+              </div>
+              <p className="text-sm text-slate-400 pt-2">Redirecionando para o login em instantes...</p>
+              <div className="w-full bg-slate-700 rounded-full h-1 overflow-hidden">
+                <div className="bg-blue-500 h-1 rounded-full animate-[progress_3s_linear_forwards]" style={{width: '100%', animation: 'none', transition: 'width 3s linear'}} />
+              </div>
             </div>
           </CardContent>
         </Card>

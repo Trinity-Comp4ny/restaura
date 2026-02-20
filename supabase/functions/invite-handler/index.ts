@@ -20,72 +20,68 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    if (!token || type !== 'invite') {
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': `${Deno.env.get('APP_URL')}/login`
-        }
-      })
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Token inválido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    // Buscar convites de fundador pendentes
-    const { data: convitesFundador, error: fundadorError } = await supabaseAdmin
-      .from('convites_fundador')
-      .select('token, email, status')
-      .eq('status', 'pendente')
+    // Convite de fundador
+    if (type === 'fundador') {
+      const { data: convite, error } = await supabaseAdmin
+        .from('convites_fundador')
+        .select('id, token, email, status, data_expiracao')
+        .eq('token', token)
+        .eq('status', 'pendente')
+        .single()
 
-    // Buscar convites de clínica pendentes
-    const { data: convitesClinica, error: clinicaError } = await supabaseAdmin
-      .from('convites')
-      .select('token, email, status')
-      .eq('status', 'pendente')
-
-    if (!fundadorError && convitesFundador && convitesFundador.length > 0) {
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': `${Deno.env.get('APP_URL')}/convite-fundador?token=${convitesFundador[0].token}`
-        }
-      })
-    }
-
-    if (!clinicaError && convitesClinica && convitesClinica.length > 0) {
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': `${Deno.env.get('APP_URL')}/convite?token=${convitesClinica[0].token}`
-        }
-      })
-    }
-
-    // Criar convite automático
-    const { data: newConvite, error: createError } = await supabaseAdmin
-      .rpc('criar_convite_fundador', {
-        p_email: 'matheus_rezende0@hotmail.com'
-      })
-
-    if (createError) {
-      console.error('Erro ao criar convite automático:', createError)
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': `${Deno.env.get('APP_URL')}/login?error=invite_auto_create_failed`
-        }
-      })
-    }
-
-    return new Response(null, {
-      status: 302,
-      headers: {
-        ...corsHeaders,
-        'Location': `${Deno.env.get('APP_URL')}/convite-fundador?token=${newConvite}`
+      if (error || !convite) {
+        return new Response(
+          JSON.stringify({ error: 'Convite não encontrado ou já utilizado' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
       }
-    })
+
+      if (new Date(convite.data_expiracao) < new Date()) {
+        return new Response(
+          JSON.stringify({ error: 'Convite expirado' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      return new Response(
+        JSON.stringify({ valid: true, email: convite.email, type: 'fundador' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Convite de clínica (equipe)
+    const { data: convite, error } = await supabaseAdmin
+      .from('convites')
+      .select('id, token, email, papel, status, data_expiracao, clinicas(nome)')
+      .eq('token', token)
+      .eq('status', 'pendente')
+      .single()
+
+    if (error || !convite) {
+      return new Response(
+        JSON.stringify({ error: 'Convite não encontrado ou já utilizado' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (new Date((convite as any).data_expiracao) < new Date()) {
+      return new Response(
+        JSON.stringify({ error: 'Convite expirado' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    return new Response(
+      JSON.stringify({ valid: true, email: (convite as any).email, papel: (convite as any).papel, type: 'clinica' }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
 
   } catch (error) {
     console.error('Erro ao processar convite:', error)

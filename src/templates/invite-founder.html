@@ -3,388 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎉 Crie sua clínica no Restaura</title>
+    <title>Convite de fundador - Restaura</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: #1f2937;
-            background-color: #f9fafb;
+            color: #e2e8f0;
+            background: #0b1221;
+            padding: 24px 12px;
         }
-        
-        .email-container {
-            max-width: 600px;
+        .outer {
+            max-width: 640px;
             margin: 0 auto;
-            background: white;
-            border-radius: 12px;
+            background: linear-gradient(145deg, #0f172a 0%, #0b1221 60%, #0f172a 100%);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(37, 99, 235, 0.28);
+            position: relative;
         }
-        
+        .glow { position: absolute; inset: 0; pointer-events: none; }
+        .glow::before {
+            content: '';
+            position: absolute;
+            width: 360px;
+            height: 360px;
+            background: radial-gradient(circle at 50% 50%, rgba(59,130,246,0.22), transparent 60%);
+            top: -120px; right: -120px;
+            filter: blur(18px);
+        }
+        .glow::after {
+            content: '';
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle at 20% 70%, rgba(37,99,235,0.18), transparent 60%);
+            bottom: -90px; left: -90px;
+            filter: blur(18px);
+        }
         .header {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            padding: 32px;
+            padding: 32px 28px 12px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .badge { display: none; }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 auto 14px;
+        }
+        .brand img { width: 40px; height: auto; display: block; }
+        .brand span {
+            color: #f8fafc;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 0.01em;
+        }
+        h1 {
+            margin: 18px 0 10px;
+            font-size: 26px;
+            color: #f8fafc;
+            letter-spacing: -0.01em;
+            font-weight: 700;
+        }
+        p.lead {
+            color: #cbd5e1;
+            font-size: 15px;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+        .content { padding: 32px; position: relative; z-index: 1; }
+        .card-grid { display: grid; gap: 16px; margin: 24px 0; }
+        .feature {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .feature-icon { font-size: 22px; }
+        .feature-title { font-weight: 700; color: #e2e8f0; }
+        .feature-desc { color: #94a3b8; font-size: 14px; }
+        .card-highlight {
+            margin-top: 12px;
+            padding: 18px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(37,99,235,0.10));
+            border: 1px solid rgba(59,130,246,0.30);
+            color: #dbeafe;
             text-align: center;
         }
-        
-        .logo {
-            width: 120px;
-            height: 40px;
-            background: white;
-            border-radius: 8px;
+        .steps {
+            margin-top: 22px;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.02);
+        }
+        .step-row {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .step-row:last-child { border-bottom: none; }
+        .step-number {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            color: #059669;
-            margin-bottom: 16px;
-        }
-        
-        .header h1 {
-            color: white;
-            font-size: 28px;
             font-weight: 700;
-            margin-bottom: 8px;
         }
-        
-        .header p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 16px;
-        }
-        
-        .content {
-            padding: 40px 32px;
-        }
-        
-        .hero-section {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .hero-section h2 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-        
-        .hero-section p {
-            font-size: 18px;
-            color: #6b7280;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        
-        .features-section {
-            display: grid;
-            gap: 24px;
-            margin-bottom: 40px;
-        }
-        
-        .feature-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 24px;
-            text-align: center;
-        }
-        
-        .feature-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-        
-        .feature-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-        
-        .feature-description {
-            font-size: 14px;
-            color: #6b7280;
-        }
-        
-        .invite-details {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #bbf7d0;
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 32px;
-            text-align: center;
-        }
-        
-        .invite-details h3 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #065f46;
-            margin-bottom: 12px;
-        }
-        
-        .invite-details p {
-            color: #047857;
-            font-size: 16px;
-        }
-        
-        .cta-section {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-        
-        .cta-button {
+        .step-title { color: #e2e8f0; font-weight: 700; }
+        .step-desc { color: #94a3b8; font-size: 14px; }
+        .cta { margin: 28px 0 18px; text-align: center; }
+        .cta a {
             display: inline-block;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
+            padding: 15px 34px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+            color: #fff;
             text-decoration: none;
-            padding: 18px 36px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 18px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.1);
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.30);
         }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(16, 185, 129, 0.2);
-        }
-        
-        .steps-section {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 32px;
-        }
-        
-        .steps-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 20px;
+        .cta a:hover { transform: translateY(-1px); }
+        .alert {
+            margin-top: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: rgba(252, 211, 77, 0.08);
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            color: #fef08a;
+            font-size: 13px;
             text-align: center;
         }
-        
-        .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 16px;
-            padding: 16px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .step:last-child {
-            margin-bottom: 0;
-        }
-        
-        .step-number {
-            width: 32px;
-            height: 32px;
-            background: #10b981;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        
-        .step-content {
-            flex: 1;
-        }
-        
-        .step-title {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 4px;
-        }
-        
-        .step-description {
-            font-size: 14px;
-            color: #6b7280;
-        }
-        
-        .security-info {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .security-info p {
-            color: #991b1b;
-            font-size: 14px;
-            text-align: center;
-        }
-        
         .footer {
-            background: #f8fafc;
-            padding: 24px 32px;
+            padding: 20px 28px 28px;
             text-align: center;
-            border-top: 1px solid #e2e8f0;
+            color: #94a3b8;
+            font-size: 13px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            background: rgba(255,255,255,0.01);
         }
-        
-        .footer p {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-        
-        .footer-links a {
-            color: #10b981;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-        
-        @media (max-width: 600px) {
-            .email-container {
-                margin: 16px;
-                border-radius: 8px;
-            }
-            
-            .header {
-                padding: 24px 20px;
-            }
-            
-            .content {
-                padding: 32px 20px;
-            }
-            
-            .hero-section h2 {
-                font-size: 24px;
-            }
-            
-            .hero-section p {
-                font-size: 16px;
-            }
-            
-            .cta-button {
-                width: 100%;
-                text-align: center;
-                font-size: 16px;
-                padding: 16px 24px;
-            }
-            
-            .step {
-                flex-direction: column;
-                text-align: center;
-            }
+        .footer a { color: #cbd5e1; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        @media (max-width: 640px) {
+            .content { padding: 24px 18px; }
+            h1 { font-size: 24px; }
+            .cta a { width: 100%; text-align: center; }
+            .step-row { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
-    <div class="email-container">
-        <!-- Header -->
+    <div class="outer">
+        <div class="glow"></div>
         <div class="header">
-            <div class="logo">Restaura</div>
-            <h1>🚀 Seja um Fundador</h1>
-            <p>Crie sua clínica e transforme sua gestão</p>
+            <div class="brand"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVFQgU1ZHIDIwMDEwOTA0Ly9FTiIKICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+CjxzdmcgdmVyc2lvbj0iMS4wIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiB3aWR0aD0iMjUyLjAwMDAwMHB0IiBoZWlnaHQ9IjI2NC4wMDAwMDBwdCIgdmlld0JveD0iMCAwIDI1Mi4wMDAwMDAgMjY0LjAwMDAwMCIKIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIG1lZXQiPgoKPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsMjY0LjAwMDAwMCkgc2NhbGUoMC4xMDAwMDAsLTAuMTAwMDAwKSIKZmlsbD0iI0ZGRkZGRiIgZmlsbC1ydWxlPSJldmVub2RkIiBzdHJva2U9Im5vbmUiPgo8cGF0aCBkPSJNMCAxMzIwIGwwIC0xMzIwIDEyNjAgMCAxMjYwIDAgMCAxMzIwIDAgMTMyMCAtMTI2MCAwIC0xMjYwIDAgMAotMTMyMHogbTE5ODIgMTA1OCBjODYgLTQwIDEyNiAtNzUgMTgwIC0xNTcgNjEgLTk0IDg4IC0xNzkgOTUgLTMwOSA1IC05MCA5Ci0xMDYgMzAgLTEzMCA1NCAtNTkgNjcgLTEzMCAzNSAtMTkyIC0yMSAtNDIgLTc1IC04MCAtMTEzIC04MCAtMjggMCAtMjQgNgotMTI3IC0xNjkgLTE3IC0zMSAtNDEgLTg1IC01MiAtMTE5IC0xOSAtNjIgLTE5IC02NSAtMiAtOTAgMzAgLTQ0IDQxIC04NyAzMgotMTI3IC05IC0zOSAtNTEgLTkxIC04MSAtMTAwIC0xMSAtNCAtMjEgLTIwIC0yNSAtNDMgLTI3IC0xNTggLTkwIC0zNDQgLTE2MAotNDY4IC00NCAtODAgLTEyMCAtMTgxIC0xNTEgLTIwMSAtMzIgLTIxIC0zMSAtMjEgLTgzIDEzNyAtNzEgMjE1IC0xODcgNDE4Ci0yNzcgNDg3IGwtMzYgMjcgLTI5IC0zNCBjLTE2IC0xOSAtNDcgLTcxIC02OCAtMTE1IC00NyAtOTggLTEzNCAtMzU3IC0xNTAKLTQ0NSAtMTQgLTc5IC0yNSAtMTAwIC01MSAtMTAwIC03NSAwIC0yMDYgMTYzIC0yNzMgMzQxIC0zOSAxMDQgLTkwIDMzMSAtOTgKNDMzIC0zIDM5IC0yIDQwIDQyIDUyIDI1IDYgNTIgMTUgNjEgMTggMTQgNiAxOCAtMyAyNCAtNTEgMTAgLTgzIDQ0IC0yMzggNjcKLTMwOCAyNiAtNzYgODMgLTE5MiAxMTQgLTIyOCBsMjQgLTI5IDE1IDM2IGM4IDE5IDE1IDQwIDE1IDQ1IDAgNSAyMCA1OCA0NAoxMTggODcgMjE2IDE5MyA0MDMgMjQyIDQyNSAzMiAxNSA1OCAtNCAxMzcgLTk4IDgxIC05NiAxNDcgLTE5OCAyMjAgLTM0MSAzQotNjggNjUgLTEyMyA2OCAtMTIzIDcgMCA2MSA4NiA3OCAxMjUgNDQgOTkgODIgMjA4IDk3IDI3MSBsMTYgNzQgLTI2IDMxIGMtMTQKMTcgLTI5IDQyIC0zMiA1NSAtMTggNzAgMjkgMTU1IDk2IDE3NSBsNDAgMTIgMCA1NCAwIDU1IC03OCA3NiBjLTQyIDQyIC0xMTAKOTYgLTE0OSAxMjAgLTcxIDQzIC03MiA0MyAtOTggMjYgLTMxIC0yMCAtMTA1IC0yMyAtMTM5IC01IC0yMSAxMiAtMjkgMTAgLTY3Ci0xMiAtMTQ4IC04NCAtMzc3IC0xOTEgLTU1OSAtMjU5IC00NSAtMTcgLTY2IC0zMCAtNjggLTQzIC03IC0zNSAtNTQgLTg3IC05NgotMTA2IC0xMDAgLTQ1IC0xOTggLTQgLTI0NCAxMDQgLTE3IDQwIC0xNCA4NiA4IDEzNiAyNCA1MiAyMiA1OSAtNDAgMTY4IC0yNgo0NSAtNjAgMTE5IC03NSAxNjUgLTI1IDcyIC0yOCA5OCAtMjggMjAzIC0xIDEwNSAzIDEyOSAyNiAxOTMgODYgMjM4IDI0NSAzNTUKNDU3IDMzOSA3NyAtNyAxNDAgLTI3IDIzOSAtNzYgMTUzIC03OCAyNjAgLTEwOCA0NDEgLTEyNiBsMTI1IC0xMiAtNTkgLTI4CmMtODEgLTM4IC0xODUgLTUyIC0yODUgLTM4IC03MiAxMSAtMTEzIDI1IC0zMzEgMTE2IC0xNDIgNTkgLTI2OSAzOCAtMzYxIC02MAotODcgLTkxIC0xMjUgLTIwNSAtMTE2IC0zNDggNiAtMTA2IDI3IC0xNzAgOTcgLTMwMSA0NCAtNzkgNTUgLTk0IDc2IC05NCAzNQowIDk0IC0yNyAxMjQgLTU1IGwyNiAtMjUgNjkgMTkgYzEzMyAzNyAzNTYgMTIzIDUxOCAyMDEgNDAgMTkgNDcgMjYgNDcgNTEgMAo4MSA2MSAxMzkgMTQ1IDEzOSA0MiAwIDUyIC01IDg2IC0zOSAyMyAtMjMgMzkgLTQ4IDM5IC02MiAwIC0zMyA3IC00MSA2NSAtNzQKNjYgLTM4IDE4MiAtMTI1IDIyNCAtMTY5IGwzNSAtMzYgMzQgNjMgYzE5IDM0IDQyIDcwIDUwIDgwIDE0IDE2IDEzIDIxIC02IDU2Ci0yOCA1MCAtMzAgMTM0IC0zIDE3NCAxMCAxNiAzNSAzOSA1NSA1MyA0MSAyOCA0MyA0MCAyNiAxNTkgLTE0IDk3IC01OCAxODIKLTEyNiAyNDQgLTkyIDg0IC0xNTUgOTUgLTQ2NCA3NyAtMTgwIC0xMCAtMTg0IC00IC0zOSA1MCAxNjIgNjEgMjIzIDc0IDMyOQo3MSA3OCAtMiAxMDUgLTggMTUyIC0yOXogTTAgMCBMMjUyMCAwIEwyNTIwIDI2NDAgTDAgMjY0MCB6Ii8+CjwvZz4KPC9zdmc+Cg==" alt="Restaura" /><span>Restaura</span></div>
+            <h1>Bem vindo à Restaura</h1>
+            <p class="lead">Crie e gerencie sua própria clínica com acesso total à plataforma.</p>
         </div>
-        
-        <!-- Content -->
+
         <div class="content">
-            <!-- Hero Section -->
-            <div class="hero-section">
-                <h2>🎉 Você foi selecionado!</h2>
-                <p>{{ inviterName }} convidou você para ser um <strong>fundador</strong> no Restaura</p>
-            </div>
-            
-            <!-- Features Section -->
-            <div class="features-section">
-                <div class="feature-card">
-                    <div class="feature-icon">🏥</div>
-                    <div class="feature-title">Sua Própria Clínica</div>
-                    <div class="feature-description">Crie e configure sua clínica do zero</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">👑</div>
-                    <div class="feature-title">Acesso Admin</div>
-                    <div class="feature-description">Controle total sobre sua clínica</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <div class="feature-title">Gestão Completa</div>
-                    <div class="feature-description">Agenda, pacientes, financeiro e mais</div>
-                </div>
-            </div>
-            
-            <!-- Invite Details -->
-            <div class="invite-details">
-                <h3>🎁 Oportunidade Exclusiva</h3>
-                <p>Como fundador, você terá acesso a todos os recursos do Restaura para gerenciar sua clínica de forma eficiente e moderna.</p>
-            </div>
-            
-            <!-- Steps Section -->
-            <div class="steps-section">
-                <div class="steps-title">📋 Como funciona:</div>
-                <div class="step">
+            <div class="steps">
+                <div class="step-row">
                     <div class="step-number">1</div>
-                    <div class="step-content">
+                    <div>
                         <div class="step-title">Crie sua conta</div>
-                        <div class="step-description">Cadastre-se no sistema com seu email</div>
+                        <div class="step-desc">Use seu e-mail para se registrar</div>
                     </div>
                 </div>
-                <div class="step">
+                <div class="step-row">
                     <div class="step-number">2</div>
-                    <div class="step-content">
-                        <div class="step-title">Configure sua clínica</div>
-                        <div class="step-description">Adicione nome, telefone e informações básicas</div>
+                    <div>
+                        <div class="step-title">Configure a clínica</div>
+                        <div class="step-desc">Defina nome, telefone e informações básicas</div>
                     </div>
                 </div>
-                <div class="step">
+                <div class="step-row">
                     <div class="step-number">3</div>
-                    <div class="step-content">
-                        <div class="step-title">Comece a usar</div>
-                        <div class="step-description">Acesso imediato ao painel administrativo</div>
+                    <div>
+                        <div class="step-title">Acesse o painel</div>
+                        <div class="step-desc">Comece a usar todos os recursos imediatamente</div>
                     </div>
                 </div>
             </div>
-            
-            <!-- CTA Section -->
-            <div class="cta-section">
-                <a href="{{ inviteUrl }}" class="cta-button">
-                    🚀 Criar Minha Clínica Agora →
-                </a>
+
+            <div class="cta">
+                <a href="{{ inviteUrl }}">Criar minha clínica agora</a>
             </div>
-            
-            <!-- Security Info -->
-            <div class="security-info">
-                <p>⚠️ Este convite expira em 14 dias. Se você não reconhece este convite, ignore este email.</p>
-            </div>
+            <div class="alert">Este convite expira em 14 dias. Se você não reconhece este convite, ignore o email.</div>
         </div>
-        
-        <!-- Footer -->
+
         <div class="footer">
-            <p>© 2024 Restaura. Todos os direitos reservados.</p>
-            <div class="footer-links">
-                <a href="#">Suporte</a>
-                <a href="#">Privacidade</a>
-                <a href="#">Termos</a>
-            </div>
+            <div>© 2026 Restaura • Gestão odontológica</div>
+            <div style="margin-top:6px; color:#64748b;">Impulsionado por <a href="https://trnty.com.br" style="color:#60a5fa; text-decoration:none;">Trinity Company</a></div>
         </div>
     </div>
 </body>

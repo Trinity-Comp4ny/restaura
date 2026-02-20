@@ -43,6 +43,17 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   estornado: { label: 'Estornado', color: 'bg-gray-100 text-gray-800 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-900' },
 }
 
+/** Status da parcela para exibição, baseado na data local do usuário (evita erro de fuso com status_calculado do banco). */
+function getStatusExibicaoParcela(parcela: { data_pagamento?: string | null; data_vencimento?: string | null; status?: string; status_calculado?: string }): string {
+  if (parcela.data_pagamento) return 'pago'
+  const hoje = getLocalISODate()
+  const venc = parcela.data_vencimento
+  if (!venc) return parcela.status_calculado || parcela.status || 'pendente'
+  if (venc < hoje) return 'vencido'
+  if (venc === hoje) return 'vence_hoje'
+  return 'pendente'
+}
+
 const normalizeText = (value: string) =>
   value
     .toLowerCase()
@@ -419,7 +430,7 @@ export function ReceitasTab({ periodo, customRange }: ReceitasTabProps) {
     })
   }, [items])
 
-  // Calcular status efetivo SEMPRE baseado nas parcelas (usar status_calculado)
+  // Calcular status efetivo pelas parcelas usando data local (evita "Vence Hoje" errado por fuso do servidor)
   const getStatusEfetivo = (receita: any): string => {
     const parcelas = receita.parcelas || []
     
@@ -432,9 +443,8 @@ export function ReceitasTab({ periodo, customRange }: ReceitasTabProps) {
     if (todasPagas) return 'pago'
     if (todasCanceladas) return 'cancelado'
     
-    // Verificar se há alguma parcela vencida usando status_calculado
-    const haVencidas = parcelas.some((p: any) => p.status_calculado === 'vencido')
-    const haVenceHoje = parcelas.some((p: any) => p.status_calculado === 'vence_hoje')
+    const haVencidas = parcelas.some((p: any) => getStatusExibicaoParcela(p) === 'vencido')
+    const haVenceHoje = parcelas.some((p: any) => getStatusExibicaoParcela(p) === 'vence_hoje')
     
     if (haVencidas) return 'vencido'
     if (haVenceHoje) return 'vence_hoje'
@@ -511,7 +521,7 @@ export function ReceitasTab({ periodo, customRange }: ReceitasTabProps) {
     }
   }
 
-  // KPIs baseados nas parcelas reais (usar status_calculado)
+  // KPIs baseados nas parcelas (status por data local)
   const totalPago = useMemo(() => {
     return filtered.reduce((sum: number, r: any) => {
       const parcelas = r.parcelas || []
@@ -522,7 +532,8 @@ export function ReceitasTab({ periodo, customRange }: ReceitasTabProps) {
   const totalPendente = useMemo(() => {
     return filtered.reduce((sum: number, r: any) => {
       const parcelas = r.parcelas || []
-      return sum + parcelas.filter((p: any) => p.data_pagamento === null && (p.status_calculado === 'pendente' || p.status_calculado === 'vencido' || p.status_calculado === 'vence_hoje')).reduce((s: number, p: any) => s + (p.valor || 0), 0)
+      const statusP = (p: any) => getStatusExibicaoParcela(p)
+      return sum + parcelas.filter((p: any) => p.data_pagamento === null && ['pendente', 'vencido', 'vence_hoje'].includes(statusP(p))).reduce((s: number, p: any) => s + (p.valor || 0), 0)
     }, 0)
   }, [filtered])
 
@@ -902,11 +913,11 @@ export function ReceitasTab({ periodo, customRange }: ReceitasTabProps) {
                             {/* Lista de parcelas */}
                             <div className="divide-y">
                               {parcelas.map((parcela: any) => {
-                                const configParcela = statusConfig[parcela.status_calculado || parcela.status] || statusConfig.pendente
+                                const statusExibicao = getStatusExibicaoParcela(parcela)
+                                const configParcela = statusConfig[statusExibicao] || statusConfig.pendente
                                 const temCorrecao = (parcela.valor_multa > 0 || parcela.valor_juros > 0 || parcela.valor_desconto > 0)
                                 const diasAtraso = parcela.dias_atraso || 0
                                 
-                                // Verificar se está vencida (data anterior a hoje e não paga)
                                 const hoje = getLocalISODate()
                                 const estaVencida = !parcela.data_pagamento && parcela.data_vencimento < hoje
                                 
@@ -935,10 +946,10 @@ export function ReceitasTab({ periodo, customRange }: ReceitasTabProps) {
                                             )}
                                           </div>
                                         )}
-                                        {parcela.status_calculado === 'vence_hoje' && (
+                                        {statusExibicao === 'vence_hoje' && (
                                           <p className="text-xs text-orange-600 font-medium">Vence hoje!</p>
                                         )}
-                                        {parcela.status_calculado === 'vencido' && !parcela.data_pagamento && (
+                                        {statusExibicao === 'vencido' && !parcela.data_pagamento && (
                                           <p className="text-xs text-red-600 font-medium">Vencida há {diffDaysFromToday(parcela.data_vencimento)} dias</p>
                                         )}
                                       </div>
@@ -962,7 +973,7 @@ export function ReceitasTab({ periodo, customRange }: ReceitasTabProps) {
                                       <Badge className={configParcela.color} variant="outline">
                                         {configParcela.label}
                                       </Badge>
-                                      {!parcela.data_pagamento && (parcela.status_calculado === 'pendente' || parcela.status_calculado === 'vencido' || parcela.status_calculado === 'vence_hoje') && (
+                                      {!parcela.data_pagamento && (statusExibicao === 'pendente' || statusExibicao === 'vencido' || statusExibicao === 'vence_hoje') && (
                                         <Button
                                           variant="outline"
                                           size="sm"
